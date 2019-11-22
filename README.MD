@@ -1,6 +1,6 @@
-# ARPA2 Root File System Makers
+# InternetWide Architecture Component Builders
 
-*Or, if you like, InternetWide Architecture Component Builders.*
+*Or, if you like, ARPA2 Root File System Makers.*
 
 > *This is a set of scripts that we propose to build root file systems
 > for ARPA2 components.  They should be seen as guidance towards a
@@ -24,7 +24,7 @@ blocking alternative implementations.
 It's all about protocols, not software.
 We do suggest a
 [split of hosting providers](http://internetwide.org/blog/2014/11/19/back-to-hosting.html)
-into domain/identity providers and plugin providers, and
+into domain identity providers and plugin service providers, and
 allow each to customise and specialise on a market segment.
 There is nothing stopping hosting providers from taking on
 both roles, but we always advise customers to insist on an open
@@ -42,17 +42,18 @@ who open up their backend for such individual overrides.
 
 ## Components are Root File Systems
 
-This project builds components identified in the InternetWide Architecture
-as tactical components to have, and to interconnect.  Each of these
-might run on bare metal, as a virtual machine in any of the systems,
-in a jail, on your Raspberry Pi at home, from a CDROM or PXE boot
+This project builds standalone components that were identified
+in the InternetWide Architecture as tactical components to have,
+and which should interconnect to form the whole.  Each component
+might run on bare metal, as an open container instance, in a BSD jail,
+on your Raspberry Pi at home, from a CDROM or PXE network boot
 and so on.  In short, it needs to build as flexibly as possible.
 
 All these technologies seem to converge on the same thing, namely the
-need for a root file system and some annotations on what resources
+use of a root file system and some added information on what resources
 may peek through its perimeter.  This general form is supported in this
 project through subdirectories that each build a component as a
-subdirectory.
+standalone root file system.
 
 The individual components welcome additional contributions of configuration
 files and so on that make them work on one of the many possible runtime
@@ -103,7 +104,7 @@ the following build mechanism is assumed.
     the `mkroot` project if you like.  This directory will
     contain any derived works, so we retain a pristine `mkroot`
     source tree.  This implies that you might repeat this step
-    for independent, and possibly different types of build.
+    for different types of build.
 
  4. Make a symbolic link from the `mkhere` subdirectory of the
     buildroot to your build target directory of this `mkroot` project
