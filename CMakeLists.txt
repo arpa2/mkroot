@@ -11,6 +11,8 @@
 
 cmake_minimum_required(VERSION 3.13)
 
+set(DEFAULT_RUNKIND "OCI bundle")
+
 
 #
 # Require a `mkhere` link.  Scan for mkhere/lib/stdlib to exist.
@@ -43,6 +45,32 @@ else()
 	message(STATUS
 		"Reusing BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
 endif()
+
+
+#
+# Allow the choice of the kind of runtime environment.
+# (This function is called automatically for each component.)
+#
+function(component__runkinds)
+	if(NOT ${CURRENT_COMPONENT}_RUNKIND)
+		set(${CURRENT_COMPONENT}_RUNKIND "${DEFAULT_RUNKIND}"
+			CACHE STRING "Kind of runtime for component ${CURRENT_COMPONENT}")
+	endif()
+	list(REMOVE_DUPLICATES CURRENT_RUNKINDS)
+	list(FIND CURRENT_RUNKINDS "${DEFAULT_RUNKIND}" _IDX)
+	if(${_IDX} EQUAL -1)
+		message(WARNING
+			"No contributions for runtime kind ${DEFAULT_RUNKIND} in component ${CURRENT_COMPONENT}")
+	endif()
+	set_property(CACHE
+		${CURRENT_COMPONENT}_RUNKIND
+		PROPERTY STRINGS
+		${CURRENT_RUNKINDS})
+endfunction(component__runkinds)
+#
+macro(component__runkind)
+	list(APPEND CURRENT_RUNKINDS ${ARGV})
+endmacro(component__runkind)
 
 
 #
@@ -102,6 +130,7 @@ endfunction(component_packages)
 
 #
 #TODO# Support adding contributed files per kind of contrib.
+# Silently introduces the contribution kind for this component.
 #
 
 
@@ -110,7 +139,10 @@ endfunction(component_packages)
 # Support including a subdirectory with a component.
 macro(add_component _COMPONAME)
 	set(CURRENT_COMPONENT ${_COMPONAME})
-	add_subdirectory (${_COMPONAME})
+	set(CURRENT_RUNKINDS CLUMSY_EMPTY)
+	list(REMOVE_AT CURRENT_RUNKINDS 0)
+	add_subdirectory(${_COMPONAME})
+	component__runkinds()
 	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
 	#TODO# Support an ALL target for all the components added.
 endmacro()

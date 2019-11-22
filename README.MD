@@ -66,13 +66,13 @@ personalised setup.
 ## Quickstart on Linux
 
 ```
-git clone https://github.com/arpa2/mkroot mkroot.git
-mkdir mkroot.git/build4linux
-cd mkroot.git/build4linux
+git clone https://github.com/arpa2/mkroot
+mkdir build4linux
+cd build4linux
 ln -s "$BUILDROOT/mkhere" mkhere
 cmake ..
-make
-ls rootfs
+make all
+ls */rootfs
 ```
 
 
@@ -114,7 +114,8 @@ the following build mechanism is assumed.
  5. Now setup the build target with `cmake "$BUILDDIR"` where you
     replace `$BUILDDIR` with the build directory.  If instead you
     would like to configure special options first, you may instead
-    run `ccmake "$BUILDDIR"` first.
+    run `ccmake "$BUILDDIR"` first.  If you do not make such a choice,
+    you are building open container bundles.
 
  6. You should now have a build system suited for your local setup.
     The `cmake` system used a generator to produce build code that
@@ -126,14 +127,15 @@ the following build mechanism is assumed.
     project.  After running your local component build command
     (for instance `make arpa2dns` for the `arpa2dns` component if
     `cmake` generated for the `make` system)
-    you should find the result in a subdirectory of `rootfs` under
-    the target build directory
-    (in the given example, `rootfs/arpa2dns`).
+    you should find the result in a subdirectory `rootfs` under
+    the component's target build subdirectory
+    (in the given example, `arpa2dns/rootfs`).
 
  8. For deployment, you may find initial contributed files for some
     components and for some runtimes in the component-named
     subdirectories under `contrib`, named by the contributing
-    element and a possible variant.
+    element and a possible variant (like `arpa2dns/config.json` for
+    an `arpa2dns` component for the `OCI bundle` runtime kind).
 
 
 ## Flavouring what you Cook
@@ -158,7 +160,16 @@ your pull requests to immortalise and share your clever solutions.
   * Packages built using `mkhere` can have variants and flavours,
     where variants influence package configuration and variants
     influence what from a package is used.  You can set these
-    with `ccmake` before `cmake` is run, as described above.
+    with `ccmake` before `cmake` is run, as described above;
+    look for `component_VARIANT` and `component_FLAVOUR`
+    variables.
+
+  * Components can be targeted at a diversity of runtime kinds,
+    the current default being `OCI bundle` but contributions for
+    others may be added at any time.  You can configure what
+    each component's target is by using `ccmake` before `cmake`
+    is run, as described above; look for `component_RUNKIND`
+    variables.
 
   * Instead of our `mkroot` respository, you might have your own
     variations, and/or you might edit or patch what we supply.
