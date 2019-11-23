@@ -11,7 +11,7 @@
 
 cmake_minimum_required(VERSION 3.13)
 
-set(DEFAULT_RUNKIND "OCI bundle")
+set(DEFAULT_RUNKIND "OCI_bundle")
 
 
 #
@@ -60,7 +60,9 @@ function(component__runkinds)
 	list(LENGTH CURRENT_RUNKINDS _LEN)
 	list(FIND CURRENT_RUNKINDS "${DEFAULT_RUNKIND}" _IDX)
 	if(${_LEN} EQUAL 0)
-		set(CURRENT_RUNKINDS "${DEFAULT_RUNKIND}")
+		#FIX# Avoid crash of ccmake on empty options list (!)
+		#OLD# set(CURRENT_RUNKINDS "${DEFAULT_RUNKIND}")
+		component_contribs ("${DEFAULT_RUNKIND}")
 	elseif(${_IDX} EQUAL -1)
 		message(WARNING
 			"No contributions for runtime kind ${DEFAULT_RUNKIND} in component ${CURRENT_COMPONENT}")
@@ -72,6 +74,8 @@ function(component__runkinds)
 endfunction(component__runkinds)
 #
 macro(component__runkind)
+	#TODO# Appended value get forgotten (scoping, no doubt)
+	#TODO# message(STATUS "Appending ${ARGV} to CURRENT_RUNKINDS=${CURRENT_RUNKINDS} for component ${CURRENT_COMPONENT}")
 	list(APPEND CURRENT_RUNKINDS ${ARGV})
 endmacro(component__runkind)
 
@@ -135,11 +139,25 @@ endfunction(component_packages)
 #TODO# Support adding contributed files per kind of contrib.
 # Silently introduces the contribution kind for this component.
 #
+function(component_contribs _RUNKIND)
+	component__runkind("${_RUNKIND}")
+	add_custom_target (${CURRENT_COMPONENT}-runkind-${_RUNKIND})
+	list(REMOVE_AT ARGV 0)
+	foreach (ARG IN LISTS ARGV)
+		#TODO# configure_file(...) --> at what phase does it run?
+		configure_file(
+			"${ARG}.in"
+			"${CMAKE_CURRENT_BINARY_DIR}/${ARG}"
+			@ONLY)
+		#TODO# add_dependencies(${CURRENT_COMPONENT}-runkind-${_RUNKIND}
+		#TODO# 	"${CMAKE_CURRENT_BINARY_DIR}/${ARG}")
+	endforeach()
+endfunction(component_contribs)
 
 
-#
 #
 # Support including a subdirectory with a component.
+#
 macro(add_component _COMPONAME)
 	set(CURRENT_COMPONENT ${_COMPONAME})
 	set(CURRENT_RUNKINDS CLUMSY_EMPTY)
@@ -148,17 +166,25 @@ macro(add_component _COMPONAME)
 	component__runkinds()
 	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
 	#TODO# Support an ALL target for all the components added.
+	add_custom_target(${_COMPONAME}-rootfs)
+	add_custom_command(TARGET ${_COMPONAME}-rootfs
+		POST_BUILD
+		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" have build
+		#TODO# Unpack tar balls or cpio archives into target rootfs
+		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" tar
+		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" oslibtar)
+	#TODO# add_custom_target(${_COMPONAME}-runkind
+	#TODO# 	DEPENDS ${_COMPONAME}-runkind-${DEFAULT_RUNKIND}})
+	add_custom_target(${_COMPONAME} ALL
+		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 endmacro()
 
 
 #
-#TODO# Include a subdirectory per component.
+# Include a subdirectory per component.
 #
 add_component(arpa2dns)
 
-#
-#TODO# Support configurable variants and flavours for each package.
-#
 
 #
 #TODO# Support installs and uninstalls?

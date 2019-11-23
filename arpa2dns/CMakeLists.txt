@@ -10,3 +10,6 @@ component_packages(
 	knot
 	python3
 )
+
+component_contribs(funny_bundle #TODO# OCI_bundle
+	config.json)

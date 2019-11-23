@@ -135,7 +135,7 @@ the following build mechanism is assumed.
     components and for some runtimes in the component-named
     subdirectories under `contrib`, named by the contributing
     element and a possible variant (like `arpa2dns/config.json` for
-    an `arpa2dns` component for the `OCI bundle` runtime kind).
+    an `arpa2dns` component for the `OCI_bundle` runtime kind).
 
 
 ## Flavouring what you Cook
@@ -165,7 +165,7 @@ your pull requests to immortalise and share your clever solutions.
     variables.
 
   * Components can be targeted at a diversity of runtime kinds,
-    the current default being `OCI bundle` but contributions for
+    the current default being `OCI_bundle` but contributions for
     others may be added at any time.  You can configure what
     each component's target is by using `ccmake` before `cmake`
     is run, as described above; look for `component_RUNKIND`
