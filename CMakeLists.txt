@@ -13,6 +13,8 @@ cmake_minimum_required(VERSION 3.13)
 
 set(DEFAULT_RUNKIND "OCI_bundle")
 
+set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
+
 
 #
 # Require a `mkhere` link.  Scan for mkhere/lib/stdlib to exist.
@@ -25,25 +27,25 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 		NO_DEFAULT_PATH)
 	if("${BUILDROOT_MKHERE_STDLIB}" STREQUAL "BUILDROOT_MKHERE_STDLIB-NOTFOUND")
 		message(FATAL_ERROR
-			"Please create a \"mkhere\" symlink to a buildroot/mkhere tree")
+			"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}")
 	endif()
 	#TODO# Resolve symlink (note that file(READ_SYMLINK...) is 3.14 only)
 	#TODO# Traversal to parent directories with "/.." is ignored?!?
 	get_filename_component(
 		BUILDROOT_MKHERE
-		"${BUILDROOT_MKHERE_STDLIB}/.."
+		"${BUILDROOT_MKHERE_STDLIB}"
 		DIRECTORY
 		CACHE)
 	get_filename_component(
 		BUILDROOT
-		"${BUILDROOT_MKHERE}/.."
+		"${BUILDROOT_MKHERE}"
 		DIRECTORY
 		CACHE)
 	message(STATUS
-		"Setting up BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
+		"Configuring BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
 else()
 	message(STATUS
-		"Reusing BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
+		"Using BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
 endif()
 
 
@@ -81,6 +83,38 @@ endmacro(component__runkind)
 
 
 #
+# Generate code for a named package.  Do this only once per package.
+# This function is normally used internally, but may also be called
+# explicitly for other reasons.
+#
+function(add_package _PKGNAME)
+	list(FIND PACKAGES_GENERATED "${_PKGNAME}" _IDX)
+	if (${_IDX} EQUAL -1)
+		list(APPEND CURRENT_PACKAGES "${_PKGNAME}")
+	endif()
+endfunction(add_package)
+#
+macro(component__addedpackages)
+	foreach(_PKGNAME IN LISTS CURRENT_PACKAGES)
+		add_custom_command(
+			TARGET ${_PKGNAME}-have_build
+			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh" have build)
+	endforeach()
+endmacro(component__addedpackages)
+#
+macro(add_component_package _PKGNAME)
+	add_package (${_PKGNAME})
+	add_custom_command(
+		TARGET ${CURRENT_COMPONENT}-rootfs
+		PRE_LINK
+		DEPENDS ${_PKGNAME}-have_build
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh here"
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh oslibhere"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endmacro(add_component_package)
+
+
+#
 # Support setting a component package list.
 #
 function(component_packages)
@@ -88,14 +122,15 @@ function(component_packages)
 		if(NOT ${PKG}_VARIANT)
 			set(${PKG}_VARIANT
 				CACHE STRING "Variant of package ${PKG}")
+			message ("Running ${BUILDROOT_MKHERE}/${PKG}.sh variants")
 			execute_process(
-				COMMAND "$BUILDROOT_MKHERE/${PKG}.sh" variants
+				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" variants
 				RESULT_VARIABLE _EXIT
 				OUTPUT_VARIABLE ${PKG}_VARIANTS)
 			if(NOT _EXIT EQUAL 0)
 				set (${PKG}_VARIANTS red white blue)
 				message(WARNING #TODO# FATAL_ERROR
-					"Failed to find variants for component ${CURRENT_COMPONENT} package ${PKG}")
+					"Failed to find variants for component ${CURRENT_COMPONENT} package ${PKG}, exit(${_EXIT})")
 			endif()
 			set_property(CACHE
 				${PKG}_VARIANT
@@ -106,7 +141,7 @@ function(component_packages)
 			set(${PKG}_FLAVOUR
 				CACHE STRING "Flavour of package ${PKG}")
 			execute_process(
-				COMMAND "$BUILDROOT_MKHERE/${PKG}.sh" flavours
+				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" flavours
 				RESULT_VARIABLE _EXIT
 				OUTPUT_VARIABLE ${PKG}_FLAVOURS)
 			if(NOT _EXIT EQUAL 0)
@@ -119,6 +154,7 @@ function(component_packages)
 				PROPERTY STRINGS
 				${${PKG}_FLAVOURS})
 		endif()
+		add_component_package(${PKG})
 	endforeach()
 endfunction(component_packages)
 
@@ -162,21 +198,18 @@ macro(add_component _COMPONAME)
 	set(CURRENT_COMPONENT ${_COMPONAME})
 	set(CURRENT_RUNKINDS CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_RUNKINDS 0)
+	set(CURRENT_PACKAGES CLUMSY_EMPTY)
+	list(REMOVE_AT CURRENT_PACKAGES 0)
 	add_subdirectory(${_COMPONAME})
-	component__runkinds()
 	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
 	#TODO# Support an ALL target for all the components added.
-	add_custom_target(${_COMPONAME}-rootfs)
-	add_custom_command(TARGET ${_COMPONAME}-rootfs
-		POST_BUILD
-		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" have build
-		#TODO# Unpack tar balls or cpio archives into target rootfs
-		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" tar
-		COMMAND "$BUILDROOT_MKHERE/${_COMPONAME}.sh" oslibtar)
-	#TODO# add_custom_target(${_COMPONAME}-runkind
-	#TODO# 	DEPENDS ${_COMPONAME}-runkind-${DEFAULT_RUNKIND}})
+	#NOTHERE#BUT#PERDIR# add_custom_target(${_COMPONAME}-rootfs)
+	add_custom_target(${_COMPONAME}-runkind
+		DEPENDS ${${_COMPONAME}_RUNKIND})
 	add_custom_target(${_COMPONAME} ALL
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
+	component__runkinds()
+	component__addedpackages()
 endmacro()
 
 
