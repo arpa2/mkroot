@@ -233,7 +233,9 @@ endmacro()
 #
 # Include a subdirectory per component.
 #
-add_subdirectory(arpa2dns)
+add_subdirectory(internetwide)
+add_subdirectory(contrib)
+add_subdirectory(local)
 
 
 #
