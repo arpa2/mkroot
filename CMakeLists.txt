@@ -11,7 +11,9 @@
 
 cmake_minimum_required(VERSION 3.13)
 
-set(DEFAULT_RUNKIND "OCI_bundle")
+set(NULL_RUNKIND "none")
+# set(DEFAULT_RUNKIND "OCI_bundle")
+set(DEFAULT_RUNKIND "${NULL_RUNKIND}")
 
 set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
 
@@ -179,6 +181,16 @@ endfunction(component_packages)
 #
 #TODO# Support setting a component OS package list.
 #
+function(component_ospackages)
+	list(JOIN ARGV " " OSPKGS)
+	set(ENV{FLAVOUR_ospackages} "${OSPKGS}")
+	add_custom_command(
+		TARGET ${CURRENT_COMPONENT}-rootfs
+		PRE_LINK
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh depend have build"
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh cpioprefix oslibcpio install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(component_ospackages)
 
 #
 #TODO# Support setting a component file list.
@@ -223,13 +235,15 @@ macro(add_component _COMPONAME)
 	add_custom_target(${_COMPONAME}-rootfs)
 	execute_process (COMMAND "${CMAKE_COMMAND}" "-E"
 		"make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-	add_custom_target(${_COMPONAME}-runkind
-		DEPENDS ${${_COMPONAME}_RUNKIND})
 	# Support an ALL target for all the components added.
 	add_custom_target(${_COMPONAME} ALL
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 	component__runkinds()
 	component__addedpackages()
+	add_custom_target(${CURRENT_COMPONENT}-runkind-${NULL_RUNKIND})
+	message (STATUS "Making ${_COMPONAME}-runkind depend on ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND}")
+	add_custom_target(${_COMPONAME}-runkind
+		DEPENDS ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND})
 endmacro()
 
 
