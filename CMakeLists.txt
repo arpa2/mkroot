@@ -20,29 +20,45 @@ set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
 # Require a `mkhere` link.  Scan for mkhere/lib/stdlib to exist.
 #
 if(NOT DEFINED BUILDROOT_MKHERE)
-	find_file(
-		BUILDROOT_MKHERE_STDLIB
-		stdlib
-		PATHS ${CMAKE_CURRENT_BINARY_DIR}/mkhere/lib
-		NO_DEFAULT_PATH)
-	if("${BUILDROOT_MKHERE_STDLIB}" STREQUAL "BUILDROOT_MKHERE_STDLIB-NOTFOUND")
-		message(FATAL_ERROR
-			"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}")
+	if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
+		# Older CMAKE have no builtin for reading symbolic links
+		find_file(
+			BUILDROOT_MKHERE_STDLIB
+			stdlib
+			PATHS ${CMAKE_CURRENT_BINARY_DIR}/mkhere/lib
+			NO_DEFAULT_PATH)
+		if("${BUILDROOT_MKHERE_STDLIB}" STREQUAL "BUILDROOT_MKHERE_STDLIB-NOTFOUND")
+			message(FATAL_ERROR
+				"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}")
+		endif()
+		message(STATUS
+			"Found stdlib script file in ${BUILDROOT_MKHERE_STDLIB}")
+		get_filename_component(
+			BUILDROOT_MKHERE_LIB
+			${BUILDROOT_MKHERE_STDLIB}
+			DIRECTORY)
+		get_filename_component(
+			BUILDROOT_MKHERE
+			"${BUILDROOT_MKHERE_LIB}"
+			DIRECTORY
+			CACHE)
+		unset(BUILDROOT_MKHERE_STDLIB
+			CACHE)
+		# get_filename_component(
+			# BUILDROOT
+			# "${BUILDROOT_MKHERE}"
+			# DIRECTORY
+			# CACHE)
+		# message(STATUS
+			# "Found build root directory in ${BUILDROOT}")
+	else()
+		# 3.14+ can resolve symlink (note that file(READ_SYMLINK...)
+		file(READ_SYMLINK
+			"mkhere"
+			BUILDROOT_MKHERE)
 	endif()
-	#TODO# Resolve symlink (note that file(READ_SYMLINK...) is 3.14 only)
-	#TODO# Traversal to parent directories with "/.." is ignored?!?
-	get_filename_component(
-		BUILDROOT_MKHERE
-		"${BUILDROOT_MKHERE_STDLIB}"
-		DIRECTORY
-		CACHE)
-	get_filename_component(
-		BUILDROOT
-		"${BUILDROOT_MKHERE}"
-		DIRECTORY
-		CACHE)
 	message(STATUS
-		"Configuring BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
+		"Configured BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
 else()
 	message(STATUS
 		"Using BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
@@ -72,7 +88,7 @@ function(component__runkinds)
 	set_property(CACHE
 		${CURRENT_COMPONENT}_RUNKIND
 		PROPERTY STRINGS
-		${CURRENT_RUNKINDS})
+		"${DEFAULT_RUNKIND}" ${CURRENT_RUNKINDS})
 endfunction(component__runkinds)
 #
 macro(component__runkind)
@@ -121,6 +137,7 @@ function(component_packages)
 	foreach(PKG IN LISTS ARGV)
 		if(NOT ${PKG}_VARIANT)
 			set(${PKG}_VARIANT
+				"(standard)"
 				CACHE STRING "Variant of package ${PKG}")
 			message ("Running ${BUILDROOT_MKHERE}/${PKG}.sh variants")
 			execute_process(
@@ -135,10 +152,11 @@ function(component_packages)
 			set_property(CACHE
 				${PKG}_VARIANT
 				PROPERTY STRINGS
-				${${PKG}_VARIANTS})
+				"(standard)" ${${PKG}_VARIANTS})
 		endif()
 		if(NOT DEFINED ${PKG}_FLAVOUR)
 			set(${PKG}_FLAVOUR
+				"(standard)"
 				CACHE STRING "Flavour of package ${PKG}")
 			execute_process(
 				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" flavours
@@ -152,7 +170,7 @@ function(component_packages)
 			set_property(CACHE
 				${PKG}_FLAVOUR
 				PROPERTY STRINGS
-				${${PKG}_FLAVOURS})
+				"(standard)" ${${PKG}_FLAVOURS})
 		endif()
 		add_component_package(${PKG})
 	endforeach()
@@ -203,7 +221,7 @@ macro(add_component _COMPONAME)
 	add_subdirectory(${_COMPONAME})
 	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
 	#TODO# Support an ALL target for all the components added.
-	#NOTHERE#BUT#PERDIR# add_custom_target(${_COMPONAME}-rootfs)
+	#NOTHERE# add_custom_target(${_COMPONAME}-rootfs)
 	add_custom_target(${_COMPONAME}-runkind
 		DEPENDS ${${_COMPONAME}_RUNKIND})
 	add_custom_target(${_COMPONAME} ALL
