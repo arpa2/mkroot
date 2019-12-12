@@ -115,7 +115,7 @@ macro(component__addedpackages)
 	foreach(_PKGNAME IN LISTS CURRENT_PACKAGES)
 		add_custom_command(
 			TARGET ${_PKGNAME}-have_build
-			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh" have build)
+			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh" have depend build)
 	endforeach()
 endmacro(component__addedpackages)
 #
@@ -125,8 +125,7 @@ macro(add_component_package _PKGNAME)
 		TARGET ${CURRENT_COMPONENT}-rootfs
 		PRE_LINK
 		DEPENDS ${_PKGNAME}-have_build
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh here"
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh oslibhere"
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh cpioprefix oslibcpio install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endmacro(add_component_package)
 
@@ -205,9 +204,9 @@ function(component_contribs _RUNKIND)
 			"${CMAKE_CURRENT_BINARY_DIR}/${ARG}"
 			@ONLY)
 	endforeach()
-	add_dependencies(
-		${CURRENT_COMPONENT}-runkind-${_RUNKIND}
-		${CURRENT_COMPONENT}-runkind)
+	# add_dependencies(
+		# ${CURRENT_COMPONENT}-runkind-${_RUNKIND}
+		# ${CURRENT_COMPONENT}-runkind)
 endfunction(component_contribs)
 
 
@@ -220,11 +219,13 @@ macro(add_component _COMPONAME)
 	list(REMOVE_AT CURRENT_RUNKINDS 0)
 	set(CURRENT_PACKAGES CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_PACKAGES 0)
-	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
-	#TODO# Support an ALL target for all the components added.
+	# Support component targets rootfs/* and $KIND_FILE and all.
 	add_custom_target(${_COMPONAME}-rootfs)
+	execute_process (COMMAND "${CMAKE_COMMAND}" "-E"
+		"make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	add_custom_target(${_COMPONAME}-runkind
 		DEPENDS ${${_COMPONAME}_RUNKIND})
+	# Support an ALL target for all the components added.
 	add_custom_target(${_COMPONAME} ALL
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 	component__runkinds()
