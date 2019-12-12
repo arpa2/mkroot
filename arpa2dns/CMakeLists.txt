@@ -6,7 +6,7 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-add_custom_target(arpa2dns-rootfs)
+add_component(arpa2dns)
 
 component_packages(
 	knot

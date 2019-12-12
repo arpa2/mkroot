@@ -53,6 +53,7 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 			# "Found build root directory in ${BUILDROOT}")
 	else()
 		# 3.14+ can resolve symlink (note that file(READ_SYMLINK...)
+		# Note: Fatal if the link is not found, or if not a link...
 		file(READ_SYMLINK
 			"mkhere"
 			BUILDROOT_MKHERE)
@@ -139,7 +140,6 @@ function(component_packages)
 			set(${PKG}_VARIANT
 				"(standard)"
 				CACHE STRING "Variant of package ${PKG}")
-			message ("Running ${BUILDROOT_MKHERE}/${PKG}.sh variants")
 			execute_process(
 				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" variants
 				RESULT_VARIABLE _EXIT
@@ -218,10 +218,9 @@ macro(add_component _COMPONAME)
 	list(REMOVE_AT CURRENT_RUNKINDS 0)
 	set(CURRENT_PACKAGES CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_PACKAGES 0)
-	add_subdirectory(${_COMPONAME})
 	#TODO# Support component targets rootfs/* and contrib/$KIND/* and all.
 	#TODO# Support an ALL target for all the components added.
-	#NOTHERE# add_custom_target(${_COMPONAME}-rootfs)
+	add_custom_target(${_COMPONAME}-rootfs)
 	add_custom_target(${_COMPONAME}-runkind
 		DEPENDS ${${_COMPONAME}_RUNKIND})
 	add_custom_target(${_COMPONAME} ALL
@@ -234,7 +233,7 @@ endmacro()
 #
 # Include a subdirectory per component.
 #
-add_component(arpa2dns)
+add_subdirectory(arpa2dns)
 
 
 #
