@@ -13,5 +13,5 @@ component_packages(
 	#python3
 )
 
-component_contribs(funny_bundle #TODO# OCI_bundle
+component_contribs(OCI_bundle
 	config.json)

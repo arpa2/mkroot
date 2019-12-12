@@ -81,7 +81,7 @@ function(component__runkinds)
 	if(${_LEN} EQUAL 0)
 		#FIX# Avoid crash of ccmake on empty options list (!)
 		#OLD# set(CURRENT_RUNKINDS "${DEFAULT_RUNKIND}")
-		component_contribs ("${DEFAULT_RUNKIND}")
+		#DOUBLE# component_contribs ("${DEFAULT_RUNKIND}")
 	elseif(${_IDX} EQUAL -1)
 		message(WARNING
 			"No contributions for runtime kind ${DEFAULT_RUNKIND} in component ${CURRENT_COMPONENT}")
@@ -195,17 +195,19 @@ endfunction(component_packages)
 #
 function(component_contribs _RUNKIND)
 	component__runkind("${_RUNKIND}")
-	add_custom_target (${CURRENT_COMPONENT}-runkind-${_RUNKIND})
 	list(REMOVE_AT ARGV 0)
+	add_custom_target(
+		${CURRENT_COMPONENT}-runkind-${_RUNKIND}
+		DEPENDS ${ARGV})
 	foreach (ARG IN LISTS ARGV)
-		#TODO# configure_file(...) --> at what phase does it run?
 		configure_file(
 			"${ARG}.in"
 			"${CMAKE_CURRENT_BINARY_DIR}/${ARG}"
 			@ONLY)
-		#TODO# add_dependencies(${CURRENT_COMPONENT}-runkind-${_RUNKIND}
-		#TODO# 	"${CMAKE_CURRENT_BINARY_DIR}/${ARG}")
 	endforeach()
+	add_dependencies(
+		${CURRENT_COMPONENT}-runkind-${_RUNKIND}
+		${CURRENT_COMPONENT}-runkind)
 endfunction(component_contribs)
 
 
