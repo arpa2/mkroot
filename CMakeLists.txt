@@ -183,13 +183,32 @@ endfunction(component_packages)
 #
 function(component_ospackages)
 	list(JOIN ARGV " " OSPKGS)
-	set(ENV{FLAVOUR_ospackages} "${OSPKGS}")
-	add_custom_command(
-		TARGET ${CURRENT_COMPONENT}-rootfs
-		PRE_LINK
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh depend have build"
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh cpioprefix oslibcpio install"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+	execute_process(
+		COMMAND "${CMAKE_COMMAND}" "-E"
+			"env" "FLAVOUR_ospackages=${OSPKGS}"
+			"${BUILDROOT_MKHERE}/ospackages.sh"
+				"depend" "have" "build"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs"
+		OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ospkg-build.log"
+		ERROR_FILE  "${CMAKE_CURRENT_BINARY_DIR}/ospkg-build.errors"
+		RESULT_VARIABLE _EXIT)
+	if(NOT _EXIT EQUAL 0)
+		message (FATAL_ERROR
+			"Component ${CURRENT_COMPONENT} failed to retrieve and build OS packages ${OSPKGS}")
+	endif()
+	execute_process(
+		COMMAND "${CMAKE_COMMAND}" "-E"
+			"env" "FLAVOUR_ospackages=${OSPKGS}"
+			"${BUILDROOT_MKHERE}/ospackages.sh"
+				"cpioprefix" "oslibcpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs"
+		OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ospkg-install.log"
+		ERROR_FILE  "${CMAKE_CURRENT_BINARY_DIR}/ospkg-install.list"
+		RESULT_VARIABLE _EXIT)
+	if(NOT _EXIT EQUAL 0)
+		message (FATAL_ERROR
+			"Component ${CURRENT_COMPONENT} failed to extract and install OS packages ${OSPKGS}")
+	endif()
 endfunction(component_ospackages)
 
 #
@@ -240,10 +259,14 @@ macro(add_component _COMPONAME)
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 	component__runkinds()
 	component__addedpackages()
-	add_custom_target(${CURRENT_COMPONENT}-runkind-${NULL_RUNKIND})
-	message (STATUS "Making ${_COMPONAME}-runkind depend on ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND}")
-	add_custom_target(${_COMPONAME}-runkind
-		DEPENDS ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND})
+	# add_custom_target(${CURRENT_COMPONENT}-runkind-${NULL_RUNKIND})
+	if(${${_COMPONAME}_RUNKIND} STREQUAL ${NULL_RUNKIND})
+		# Add the target with no dependencies
+		add_custom_target(${_COMPONAME}-runkind)
+	else()
+		add_custom_target(${_COMPONAME}-runkind
+			DEPENDS ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND})
+	endif()
 endmacro()
 
 

@@ -8,10 +8,15 @@
 
 add_component(arpa2dns)
 
-component_packages(
-	knot
-	#python3
+#TODO# component_packages(
+	#TODO# knot
+#TODO# )
+
+component_ospackages(
+	python3
 )
 
 component_contribs(OCI_bundle
-	config.json)
+	config.json
+)
+

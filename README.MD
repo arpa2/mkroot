@@ -165,8 +165,9 @@ your pull requests to immortalise and share your clever solutions.
     variables.
 
   * Components can be targeted at a diversity of runtime kinds,
-    the current default being `OCI_bundle` but contributions for
-    others may be added at any time.  You can configure what
+    the current default being `none` for nothing to be added,
+    but contributions for others such as `OCI_bundle`
+    may be added at any time.  You can configure what
     each component's target is by using `ccmake` before `cmake`
     is run, as described above; look for `component_RUNKIND`
     variables.
