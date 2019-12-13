@@ -125,7 +125,7 @@ macro(add_component_package _PKGNAME)
 	add_package (${_PKGNAME})
 	add_custom_command(
 		TARGET ${CURRENT_COMPONENT}-rootfs
-		PRE_LINK
+		PRE_BUILD
 		DEPENDS ${_PKGNAME}-have_build
 		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh cpioprefix oslibcpio install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
@@ -183,33 +183,20 @@ endfunction(component_packages)
 #
 function(component_ospackages)
 	list(JOIN ARGV " " OSPKGS)
-	execute_process(
+	add_custom_command(
+		TARGET ${CURRENT_COMPONENT}-rootfs
+		PRE_BUILD
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
 				"depend" "have" "build"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs"
-		OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ospkg-build.log"
-		ERROR_FILE  "${CMAKE_CURRENT_BINARY_DIR}/ospkg-build.errors"
-		RESULT_VARIABLE _EXIT)
-	if(NOT _EXIT EQUAL 0)
-		message (FATAL_ERROR
-			"Component ${CURRENT_COMPONENT} failed to retrieve and build OS packages ${OSPKGS}")
-	endif()
-	execute_process(
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
 				"cpioprefix" "oslibcpio" "install"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs"
-		OUTPUT_FILE "${CMAKE_CURRENT_BINARY_DIR}/ospkg-install.log"
-		ERROR_FILE  "${CMAKE_CURRENT_BINARY_DIR}/ospkg-install.list"
-		RESULT_VARIABLE _EXIT)
-	if(NOT _EXIT EQUAL 0)
-		message (FATAL_ERROR
-			"Component ${CURRENT_COMPONENT} failed to extract and install OS packages ${OSPKGS}")
-	endif()
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endfunction(component_ospackages)
+
 
 #
 #TODO# Support setting a component file list.
@@ -217,6 +204,10 @@ endfunction(component_ospackages)
 
 #
 #TODO# Support setting a component kernel module list???
+#
+
+#
+#TODO# Support setting fixup bash scripts to run on the rootfs
 #
 
 #
@@ -250,15 +241,16 @@ macro(add_component _COMPONAME)
 	list(REMOVE_AT CURRENT_RUNKINDS 0)
 	set(CURRENT_PACKAGES CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_PACKAGES 0)
-	# Support component targets rootfs/* and $KIND_FILE and all.
+	# Support component target rootfs/*
 	add_custom_target(${_COMPONAME}-rootfs)
 	execute_process (COMMAND "${CMAKE_COMMAND}" "-E"
 		"make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-	# Support an ALL target for all the components added.
+	# Support an ALL target for all the components as a whole.
 	add_custom_target(${_COMPONAME} ALL
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 	component__runkinds()
 	component__addedpackages()
+	# Support component target $KIND_FILE
 	# add_custom_target(${CURRENT_COMPONENT}-runkind-${NULL_RUNKIND})
 	if(${${_COMPONAME}_RUNKIND} STREQUAL ${NULL_RUNKIND})
 		# Add the target with no dependencies

@@ -13,7 +13,7 @@ add_component(arpa2dns)
 #TODO# )
 
 component_ospackages(
-	python3
+	python3.7
 )
 
 component_contribs(OCI_bundle
