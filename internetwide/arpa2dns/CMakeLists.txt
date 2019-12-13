@@ -9,8 +9,8 @@
 add_component(arpa2dns)
 
 component_ospackages(
-	python3.7
-	knot
+	python3.7 python3
+	knot knot-dnsutils
 )
 
 #TODO# component_packages(
@@ -20,6 +20,11 @@ component_ospackages(
 component_fixups(
 	testfix
 	otherfix
+)
+
+component_downloads(
+	"http://internetwide.org/index.html"
+	"http://internetwide.org/tag/identity.html"
 )
 
 component_contribs(OCI_bundle

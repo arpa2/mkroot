@@ -11,6 +11,9 @@
 
 cmake_minimum_required(VERSION 3.13)
 
+include(ExternalData)
+
+
 set(NULL_RUNKIND "none")
 # set(DEFAULT_RUNKIND "OCI_bundle")
 set(DEFAULT_RUNKIND "${NULL_RUNKIND}")
@@ -179,7 +182,7 @@ endfunction(component_packages)
 
 
 #
-#TODO# Support setting a component OS package list.
+# Support setting a component OS package list.
 #
 function(component_ospackages)
 	list(JOIN ARGV " " OSPKGS)
@@ -206,9 +209,37 @@ endfunction(component_ospackages)
 #TODO# Support setting a component kernel module list???
 #
 
+
 #
-# Support setting fixup bash scripts to run on the rootfs
-# Note: We append a .sh extension for optimal portability
+# Support downloads of URLs into the /root home directory.
+#
+function(component_downloads)
+	execute_process (
+		COMMAND ${CMAKE_PROGRAM} "-E" "make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs/root")
+	foreach(URL IN LISTS ARGV)
+		string(REGEX REPLACE
+			"^([^:/]+:)?(//[^/]+).*/"
+			""
+			BASENAME
+			"${URL}")
+		# ExternalData_Add_Target(
+			# ${CURRENT_COMPONENT}-externaldata-${BASENAME})
+		# add_custom_command(
+			# TARGET ${CURRENT_COMPONENT}-rootfs
+			# PRE_BUILD
+			# COMMAND ${CMAKE_PROGRAM} -E ${CMAKE_CURRENT_BINARY_DIR}/rootfs/root)
+		message(STATUS
+			"Downloading ${URL} to /root/${BASENAME} in ${CURRENT_COMPONENT}")
+		file(DOWNLOAD
+			${URL}
+			${CMAKE_CURRENT_BINARY_DIR}/rootfs/root/${BASENAME})
+	endforeach()
+endfunction(component_downloads)
+
+
+#
+# Support setting fixup bash scripts to run on the rootfs.
+# Note: We append a .sh extension for best portability
 #
 function(component_fixups)
 	foreach(FIX IN LISTS ARGV)
