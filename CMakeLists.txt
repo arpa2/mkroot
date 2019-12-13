@@ -207,11 +207,20 @@ endfunction(component_ospackages)
 #
 
 #
-#TODO# Support setting fixup bash scripts to run on the rootfs
+# Support setting fixup bash scripts to run on the rootfs
+# Note: We append a .sh extension for optimal portability
 #
+function(component_fixups)
+	foreach(FIX IN LISTS ARGV)
+		add_custom_command(
+			TARGET ${CURRENT_COMPONENT}-rootfs
+			POST_BUILD
+			COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh")
+	endforeach()
+endfunction(component_fixups)
 
 #
-#TODO# Support adding contributed files per kind of contrib.
+# Support adding contributed files per kind of contrib.
 # Silently introduces the contribution kind for this component.
 #
 function(component_contribs _RUNKIND)
