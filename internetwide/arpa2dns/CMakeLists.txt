@@ -9,7 +9,8 @@
 add_component(arpa2dns)
 
 component_ospackages(
-	python3.7 python3
+	bash
+	python3-minimal
 	knot knot-dnsutils
 )
 
@@ -17,14 +18,28 @@ component_ospackages(
 	#TODO# knot
 #TODO# )
 
+component_directories(
+	/etc
+	/dev
+	/bin /sbin /usr/bin /usr/sbin
+	/lib /usr/lib
+	/proc /sys
+)
+
+component_files(
+	/etc/nsswitch.conf
+	/etc/ld.so.conf
+	/etc/ld.so.conf.d/*
+)
+
 component_fixups(
-	testfix
-	otherfix
+	# testfix
+	# otherfix
 )
 
 component_downloads(
-	"http://internetwide.org/index.html"
-	"http://internetwide.org/tag/identity.html"
+	# "http://internetwide.org/index.html"
+	# "http://internetwide.org/tag/identity.html"
 )
 
 component_contribs(OCI_bundle

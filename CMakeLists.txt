@@ -202,8 +202,46 @@ endfunction(component_ospackages)
 
 
 #
-#TODO# Support setting a component file list.
+# Support setting a component (empty) directory list.
 #
+function(component_directories)
+	set(DIRLIST )
+	foreach(DIR IN LISTS ARGV)
+		string(REGEX REPLACE "^/" "" RELDIR ${DIR})
+		list(APPEND DIRLIST "${RELDIR}")
+	endforeach()
+	add_custom_command(
+		TARGET ${CURRENT_COMPONENT}-rootfs
+		PRE_BUILD
+		COMMAND "${CMAKE_COMMAND}" -E
+		"make_directory" ${DIRLIST}
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(component_directories)
+
+
+#
+# Support setting a component file list to grab from the "mkhere" environment.
+# Implemented through /mkhere/osfiles.sh and supports filename globs.
+#
+function(component_files)
+	set(FILELIST "")
+	foreach(FILE IN LISTS ARGV)
+		string(REGEX REPLACE "[/]+" "/" PROPERFILE ${FILE})
+		string(APPEND FILELIST ${PROPERFILE} "//")
+	endforeach()
+	add_custom_command(
+		TARGET ${CURRENT_COMPONENT}-rootfs
+		PRE_BUILD
+		COMMAND "${CMAKE_COMMAND}" "-E"
+			"env" "FLAVOUR_osfiles=\"${FILELIST}\""
+			"${BUILDROOT_MKHERE}/osfiles.sh"
+				"depend" "have" "build"
+		COMMAND "${CMAKE_COMMAND}" "-E"
+			"env" "FLAVOUR_osfiles=\"${FILELIST}\""
+			"${BUILDROOT_MKHERE}/osfiles.sh"
+				"cpioprefix" "oslibcpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(component_files)
 
 #
 #TODO# Support setting a component kernel module list???
