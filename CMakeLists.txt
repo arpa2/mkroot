@@ -243,9 +243,13 @@ function(component_files)
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endfunction(component_files)
 
+
 #
 #TODO# Support setting a component kernel module list???
 #
+function(component_kernel_modules)
+	message(FATAL_ERROR "component_kernel_modules() is not yet implemented")
+endfunction(component_kernel_modules)
 
 
 #
@@ -292,7 +296,7 @@ endfunction(component_fixups)
 # Support adding contributed files per kind of contrib.
 # Silently introduces the contribution kind for this component.
 #
-function(component_contribs _RUNKIND)
+function(component_runkind _RUNKIND)
 	component__runkind("${_RUNKIND}")
 	list(REMOVE_AT ARGV 0)
 	add_custom_target(
@@ -307,7 +311,7 @@ function(component_contribs _RUNKIND)
 	# add_dependencies(
 		# ${CURRENT_COMPONENT}-runkind-${_RUNKIND}
 		# ${CURRENT_COMPONENT}-runkind)
-endfunction(component_contribs)
+endfunction(component_runkind)
 
 
 #

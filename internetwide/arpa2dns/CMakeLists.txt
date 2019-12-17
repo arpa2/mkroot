@@ -15,15 +15,16 @@ component_ospackages(
 	knot knot-dnsutils
 )
 
-#TODO# component_packages(
-	#TODO# knot
-#TODO# )
+component_packages(
+	twin
+)
 
 component_directories(
 	/etc
 	/dev
 	/bin /sbin /usr/bin /usr/sbin
 	/lib /usr/lib
+	/tmp
 	/proc /sys
 )
 
@@ -46,7 +47,7 @@ component_downloads(
 	# "http://internetwide.org/tag/identity.html"
 )
 
-component_contribs(OCI_bundle
+component_runkind(OCI_bundle
 	config.json
 )
 

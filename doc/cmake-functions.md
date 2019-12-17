@@ -31,20 +31,13 @@ The component name is setup in a variable `CURRENT_COMPONENT`, referenced by mos
 
 Runtime environments are the places where the root file system is run, usually under some description of what resources should be made available and how.  We briefly refer to those as a "runkind".  By default, the runkind is `none`, calling for no extra work.
 
+You can create any runkind that you like, and configure it in a cache variable `${CURRENT_COMPONENT}_RUNKIND`.  Multiple runkinds can be defined.
 
 ```
-component__runkinds(OCI_bundle)
-```
-
-You can create any runkind that you like, and configure it in a cache variable `${CURRENT_COMPONENT}_RUNKIND`.  Multiple runkinds can be defined.  **TODO:** Do we still need to make this call?
-
-```
-component_contribs(OCI_bundle
+component_runkind(OCI_bundle
 	config.json
 )
 ```
-
-**TODO:** Should rename this to `component_runkind()`.
 
 This introduces files to be configured to a resource-descriptive file.  The first argument names the supported runkind, any further arguments list file names to add when configuring for that runkind.  The directory should have a template bearing that name plus a `.in` extension.  CMake variables surrounded with `@` symbols will be expanded from this template to form the targeted file.
 
@@ -113,8 +106,6 @@ component_packages(
 Build a `mkhere` package from source, possibly after retrieving it first.  Extract the package, along with any libraries from the build environment that its executable binaries need.
 
 ## Fixup Scripts
-
-**Note:** The actual fixup files need a `.sh` extension.
 
 ```
 component_fixups(
