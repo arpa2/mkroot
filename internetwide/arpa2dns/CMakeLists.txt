@@ -10,7 +10,8 @@ add_component(arpa2dns)
 
 component_ospackages(
 	bash
-	python3-minimal
+	python3.7-minimal
+	libpython3.7-stdlib
 	knot knot-dnsutils
 )
 
@@ -27,6 +28,9 @@ component_directories(
 )
 
 component_files(
+	# /etc/passwd
+	# /etc/shadow
+	# /etc/group
 	/etc/nsswitch.conf
 	/etc/ld.so.conf
 	/etc/ld.so.conf.d/*
