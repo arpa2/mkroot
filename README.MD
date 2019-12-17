@@ -70,9 +70,9 @@ git clone https://github.com/arpa2/mkroot
 mkdir build4linux
 cd build4linux
 ln -s "$BUILDROOT/mkhere" mkhere
-cmake ..
+cmake ../mkroot
 make all
-ls */rootfs
+ls */*/rootfs
 ```
 
 
