@@ -60,12 +60,15 @@ component_files(
 	/etc/nsswitch.conf
 	/etc/ld.so.conf
 	/etc/ld.so.conf.d/*
+	README.MD
 )
 ```
 
-**TODO:** Might add a slash-less name for local files.
+This can retrieve files from a number of places.
 
-This retrieves files from the `mkhere` environment, and passes them into the component root file system in the same location.
+  * When the file starts with a slash, it is retrieved from the `mkhere` environment, and passed into the component root file system in the same location.
+  * When the file has no inner slash, it is retrieved from CMake's source directory for the component, and placed in the root directory.
+
 
 ## Downloading Files
 

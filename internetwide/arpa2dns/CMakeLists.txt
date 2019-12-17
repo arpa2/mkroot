@@ -35,6 +35,7 @@ component_files(
 	/etc/nsswitch.conf
 	/etc/ld.so.conf
 	/etc/ld.so.conf.d/*
+	README.MD
 )
 
 component_fixups(

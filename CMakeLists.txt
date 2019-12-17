@@ -224,26 +224,51 @@ endfunction(component_directories)
 
 #
 # Support setting a component file list to grab from the "mkhere" environment.
-# Implemented through /mkhere/osfiles.sh and supports filename globs.
+#
+# File names with an initial slash are retrieved with /mkhere/osfiles.sh and
+# have support for filename globs.
+#
+# File names without inner slash are retrieved as part of the current source
+# directory.
 #
 function(component_files)
-	set(FILELIST "")
+	set(OSFILES "")
+	set(LOCALFILES)
 	foreach(FILE IN LISTS ARGV)
-		string(REGEX REPLACE "[/]+" "/" PROPERFILE ${FILE})
-		string(APPEND FILELIST ${PROPERFILE} "//")
+		if("${FILE}" MATCHES "^/")
+			string(REGEX REPLACE "[/]+" "/" PROPERFILE ${FILE})
+			string(APPEND OSFILES "${PROPERFILE}//")
+		elseif("${FILE}" MATCHES "/")
+			message(FATAL_ERROR "Component file name ${FILE} must be either absolute or local")
+		elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${FILE}")
+			list(APPEND LOCALFILES "${FILE}")
+		else()
+			message(FATAL_ERROR "Not sure where to find coponent file ${FILE}")
+		endif()
 	endforeach()
-	add_custom_command(
-		TARGET ${CURRENT_COMPONENT}-rootfs
-		PRE_BUILD
-		COMMAND "${CMAKE_COMMAND}" "-E"
-			"env" "FLAVOUR_osfiles=\"${FILELIST}\""
-			"${BUILDROOT_MKHERE}/osfiles.sh"
-				"depend" "have" "build"
-		COMMAND "${CMAKE_COMMAND}" "-E"
-			"env" "FLAVOUR_osfiles=\"${FILELIST}\""
-			"${BUILDROOT_MKHERE}/osfiles.sh"
-				"cpioprefix" "oslibcpio" "install"
-		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+	if(NOT "${OSFILES}" STREQUAL "")
+		add_custom_command(
+			TARGET ${CURRENT_COMPONENT}-rootfs
+			PRE_BUILD
+			COMMAND "${CMAKE_COMMAND}" "-E"
+				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
+				"${BUILDROOT_MKHERE}/osfiles.sh"
+					"depend" "have" "build"
+			COMMAND "${CMAKE_COMMAND}" "-E"
+				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
+				"${BUILDROOT_MKHERE}/osfiles.sh"
+					"cpioprefix" "oslibcpio" "install"
+			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+	endif()
+	foreach(LOCALFILE IN LISTS LOCALFILES)
+		add_custom_command(
+			TARGET ${CURRENT_COMPONENT}-rootfs
+			PRE_BUILD
+			COMMAND "${CMAKE_COMMAND}" "-E"
+				"copy"
+				"${CMAKE_CURRENT_SOURCE_DIR}/${LOCALFILE}"
+				"${CMAKE_CURRENT_BINARY_DIR}/rootfs/${LOCALFILE}")
+	endforeach()
 endfunction(component_files)
 
 
