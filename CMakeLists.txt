@@ -118,6 +118,7 @@ endfunction(add_package)
 #
 macro(component__addedpackages)
 	foreach(_PKGNAME IN LISTS CURRENT_PACKAGES)
+		#TODO# Not referenced anymore as a dependency of install
 		add_custom_command(
 			TARGET ${_PKGNAME}-have_build
 			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh" have depend build)
@@ -129,8 +130,10 @@ macro(add_component_package _PKGNAME)
 	add_custom_command(
 		TARGET ${CURRENT_COMPONENT}-rootfs
 		PRE_BUILD
-		DEPENDS ${_PKGNAME}-have_build
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh cpioprefix oslibcpio install"
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
+			"depend" "have" "build"
+		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
+			"cpioprefix" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endmacro(add_component_package)
 
