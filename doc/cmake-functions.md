@@ -115,4 +115,4 @@ component_fixups(
 )
 ```
 
-This defines fixup scripts that are run to tweak the target file system as desired.  Some tweaks may become a standard facility, but mostly the script names are expected to reference a shell executable with an added `.sh` extension in the component's source directory.
+This defines fixup scripts that are run to tweak the target file system as desired.  The scripts *do not run chrooted* but merely with the root file system of the component as their working directory, so *all file references must be relative* to that.  Some tweaks may become a standard facility, but mostly the script names are expected to reference a shell executable with an added `.sh` extension in the component's source directory.

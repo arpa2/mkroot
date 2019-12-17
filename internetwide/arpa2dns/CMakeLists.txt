@@ -9,7 +9,7 @@
 add_component(arpa2dns)
 
 component_ospackages(
-	bash
+	busybox # bash
 	python3.7-minimal
 	libpython3.7-stdlib
 	knot knot-dnsutils
@@ -39,13 +39,14 @@ component_files(
 )
 
 component_fixups(
+	busybox
 	# testfix
 	# otherfix
 )
 
 component_downloads(
-	"http://internetwide.org/index.html"
-	"http://internetwide.org/tag/identity.html"
+	# "http://internetwide.org/index.html"
+	# "http://internetwide.org/tag/identity.html"
 )
 
 component_runkind(OCI_bundle

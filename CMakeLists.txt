@@ -315,7 +315,8 @@ function(component_fixups)
 		add_custom_command(
 			TARGET ${CURRENT_COMPONENT}-rootfs
 			POST_BUILD
-			COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh")
+			COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh"
+			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	endforeach()
 endfunction(component_fixups)
 
