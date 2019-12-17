@@ -43,8 +43,8 @@ component_fixups(
 )
 
 component_downloads(
-	# "http://internetwide.org/index.html"
-	# "http://internetwide.org/tag/identity.html"
+	"http://internetwide.org/index.html"
+	"http://internetwide.org/tag/identity.html"
 )
 
 component_runkind(OCI_bundle

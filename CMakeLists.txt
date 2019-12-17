@@ -256,28 +256,27 @@ endfunction(component_kernel_modules)
 
 
 #
-# Support downloads of URLs into the /root home directory.
+# Support downloads of URLs into the root directory for the component.
 #
 function(component_downloads)
-	execute_process (
-		COMMAND ${CMAKE_PROGRAM} "-E" "make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs/root")
 	foreach(URL IN LISTS ARGV)
 		string(REGEX REPLACE
-			"^([^:/]+:)?(//[^/]+).*/"
+			"^.*/"
 			""
 			BASENAME
 			"${URL}")
-		# ExternalData_Add_Target(
-			# ${CURRENT_COMPONENT}-externaldata-${BASENAME})
-		# add_custom_command(
-			# TARGET ${CURRENT_COMPONENT}-rootfs
-			# PRE_BUILD
-			# COMMAND ${CMAKE_PROGRAM} -E ${CMAKE_CURRENT_BINARY_DIR}/rootfs/root)
 		message(STATUS
-			"Downloading ${URL} to /root/${BASENAME} in ${CURRENT_COMPONENT}")
-		file(DOWNLOAD
-			${URL}
-			${CMAKE_CURRENT_BINARY_DIR}/rootfs/root/${BASENAME})
+			"Downloading /${BASENAME} in ${CURRENT_COMPONENT} from ${URL}")
+		add_custom_command(
+			TARGET ${CURRENT_COMPONENT}-rootfs
+			PRE_BUILD
+			COMMAND "${CMAKE_COMMAND}"
+				-P "${CMAKE_SOURCE_DIR}/FetchFiles.cmake"
+				"${URL}"
+			COMMAND "${CMAKE_COMMAND}"
+				-E copy
+				"${CMAKE_CURRENT_BINARY_DIR}/FetchedFiles/${BASENAME}"
+				"${CMAKE_CURRENT_BINARY_DIR}/rootfs/${BASENAME}")
 	endforeach()
 endfunction(component_downloads)
 

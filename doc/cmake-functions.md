@@ -69,8 +69,6 @@ This retrieves files from the `mkhere` environment, and passes them into the com
 
 ## Downloading Files
 
-**TODO:** Poor implementation.
-
 ```
 component_downloads(
 	"http://internetwide.org/index.html"
@@ -78,7 +76,7 @@ component_downloads(
 )
 ```
 
-Download files from a given URL, and install in `/root` for later processing in fixup scripts or other functions that we may add to this list.
+Download files from a given URL, and install in the root directory of the component's root file system for later processing in fixup scripts or other functions that we may add to this list.  When a URL ends in a slash, no file name can be inferred.  Downloads are cached in a `FetchedFiles` subdirectory under CMake's binary directory for the component.
 
 ## Adding OS Packages
 
