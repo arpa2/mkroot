@@ -312,10 +312,17 @@ endfunction(component_downloads)
 #
 function(component_fixups)
 	foreach(FIX IN LISTS ARGV)
+		set(FIXSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh")
+		if(NOT EXISTS "${FIXSCRIPT}")
+			set(FIXSCRIPT "${CMAKE_SOURCE_DIR}/fixup/${FIX}.sh")
+		endif()
+		if(NOT EXISTS "${FIXSCRIPT}")
+			message(FATAL_ERROR "Fixup script ${FIX}.sh not found")
+		endif()
 		add_custom_command(
 			TARGET ${CURRENT_COMPONENT}-rootfs
 			POST_BUILD
-			COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh"
+			COMMAND "${FIXSCRIPT}"
 			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	endforeach()
 endfunction(component_fixups)
