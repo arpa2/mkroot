@@ -38,18 +38,18 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 		endif()
 		message(STATUS
 			"Found stdlib script file in ${BUILDROOT_MKHERE_STDLIB}")
-		get_filename_component(
+		get_filename_rootfs(
 			BUILDROOT_MKHERE_LIB
 			${BUILDROOT_MKHERE_STDLIB}
 			DIRECTORY)
-		get_filename_component(
+		get_filename_rootfs(
 			BUILDROOT_MKHERE
 			"${BUILDROOT_MKHERE_LIB}"
 			DIRECTORY
 			CACHE)
 		unset(BUILDROOT_MKHERE_STDLIB
 			CACHE)
-		# get_filename_component(
+		# get_filename_rootfs(
 			# BUILDROOT
 			# "${BUILDROOT_MKHERE}"
 			# DIRECTORY
@@ -73,12 +73,12 @@ endif()
 
 #
 # Allow the choice of the kind of runtime environment.
-# (This function is called automatically for each component.)
+# (This function is called automatically for each rootfs.)
 #
-function(component__runkinds)
-	if(NOT ${CURRENT_COMPONENT}_RUNKIND)
-		set(${CURRENT_COMPONENT}_RUNKIND "${DEFAULT_RUNKIND}"
-			CACHE STRING "Kind of runtime for component ${CURRENT_COMPONENT}")
+function(rootfs__runkinds)
+	if(NOT ${CURRENT_ROOTFS}_RUNKIND)
+		set(${CURRENT_ROOTFS}_RUNKIND "${DEFAULT_RUNKIND}"
+			CACHE STRING "Kind of runtime for rootfs ${CURRENT_ROOTFS}")
 	endif()
 	list(REMOVE_DUPLICATES CURRENT_RUNKINDS)
 	list(LENGTH CURRENT_RUNKINDS _LEN)
@@ -86,22 +86,22 @@ function(component__runkinds)
 	if(${_LEN} EQUAL 0)
 		#FIX# Avoid crash of ccmake on empty options list (!)
 		#OLD# set(CURRENT_RUNKINDS "${DEFAULT_RUNKIND}")
-		#DOUBLE# component_contribs ("${DEFAULT_RUNKIND}")
+		#DOUBLE# rootfs_contribs ("${DEFAULT_RUNKIND}")
 	elseif(${_IDX} EQUAL -1)
 		message(WARNING
-			"No contributions for runtime kind ${DEFAULT_RUNKIND} in component ${CURRENT_COMPONENT}")
+			"No contributions for runtime kind ${DEFAULT_RUNKIND} in rootfs ${CURRENT_ROOTFS}")
 	endif()
 	set_property(CACHE
-		${CURRENT_COMPONENT}_RUNKIND
+		${CURRENT_ROOTFS}_RUNKIND
 		PROPERTY STRINGS
 		"${DEFAULT_RUNKIND}" ${CURRENT_RUNKINDS})
-endfunction(component__runkinds)
+endfunction(rootfs__runkinds)
 #
-macro(component__runkind)
+macro(rootfs__runkind)
 	#TODO# Appended value get forgotten (scoping, no doubt)
-	#TODO# message(STATUS "Appending ${ARGV} to CURRENT_RUNKINDS=${CURRENT_RUNKINDS} for component ${CURRENT_COMPONENT}")
+	#TODO# message(STATUS "Appending ${ARGV} to CURRENT_RUNKINDS=${CURRENT_RUNKINDS} for rootfs ${CURRENT_ROOTFS}")
 	list(APPEND CURRENT_RUNKINDS ${ARGV})
-endmacro(component__runkind)
+endmacro(rootfs__runkind)
 
 
 #
@@ -116,7 +116,7 @@ function(add_package _PKGNAME)
 	endif()
 endfunction(add_package)
 #
-macro(component__addedpackages)
+macro(rootfs__addedpackages)
 	foreach(_PKGNAME IN LISTS CURRENT_PACKAGES)
 		#TODO# Not referenced anymore as a dependency of install
 		add_custom_command(
@@ -124,25 +124,25 @@ macro(component__addedpackages)
 			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 				"have" "osdepend" "build")
 	endforeach()
-endmacro(component__addedpackages)
+endmacro(rootfs__addedpackages)
 #
-macro(add_component_package _PKGNAME)
+macro(add_rootfs_package _PKGNAME)
 	add_package (${_PKGNAME})
 	add_custom_command(
-		TARGET ${CURRENT_COMPONENT}-rootfs
+		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
 		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 			"osdepend" "have" "build"
 		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 			"cpioprefix" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-endmacro(add_component_package)
+endmacro(add_rootfs_package)
 
 
 #
-# Support setting a component package list.
+# Support setting a rootfs package list.
 #
-function(component_packages)
+function(rootfs_packages)
 	foreach(PKG IN LISTS ARGV)
 		if(NOT ${PKG}_VARIANT)
 			set(${PKG}_VARIANT
@@ -155,7 +155,7 @@ function(component_packages)
 			if(NOT _EXIT EQUAL 0)
 				set (${PKG}_VARIANTS red white blue)
 				message(WARNING #TODO# FATAL_ERROR
-					"Failed to find variants for component ${CURRENT_COMPONENT} package ${PKG}, exit(${_EXIT})")
+					"Failed to find variants for rootfs ${CURRENT_ROOTFS} package ${PKG}, exit(${_EXIT})")
 			endif()
 			set_property(CACHE
 				${PKG}_VARIANT
@@ -173,25 +173,25 @@ function(component_packages)
 			if(NOT _EXIT EQUAL 0)
 				set (${PKG}_FLAVOURS tangy sweet bitter umami)
 				message(WARNING #TODO# FATAL_ERROR
-					"Failed to find flavours for component ${CURRENT_COMPONENT} package ${PKG}")
+					"Failed to find flavours for rootfs ${CURRENT_ROOTFS} package ${PKG}")
 			endif()
 			set_property(CACHE
 				${PKG}_FLAVOUR
 				PROPERTY STRINGS
 				"(standard)" ${${PKG}_FLAVOURS})
 		endif()
-		add_component_package(${PKG})
+		add_rootfs_package(${PKG})
 	endforeach()
-endfunction(component_packages)
+endfunction(rootfs_packages)
 
 
 #
-# Support setting a component OS package list.
+# Support setting a rootfs OS package list.
 #
-function(component_ospackages)
+function(rootfs_ospackages)
 	list(JOIN ARGV " " OSPKGS)
 	add_custom_command(
-		TARGET ${CURRENT_COMPONENT}-rootfs
+		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
@@ -202,29 +202,29 @@ function(component_ospackages)
 			"${BUILDROOT_MKHERE}/ospackages.sh"
 				"cpioprefix" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-endfunction(component_ospackages)
+endfunction(rootfs_ospackages)
 
 
 #
-# Support setting a component (empty) directory list.
+# Support setting a rootfs (empty) directory list.
 #
-function(component_directories)
+function(rootfs_directories)
 	set(DIRLIST )
 	foreach(DIR IN LISTS ARGV)
 		string(REGEX REPLACE "^/" "" RELDIR ${DIR})
 		list(APPEND DIRLIST "${RELDIR}")
 	endforeach()
 	add_custom_command(
-		TARGET ${CURRENT_COMPONENT}-rootfs
+		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
 		COMMAND "${CMAKE_COMMAND}" -E
 		"make_directory" ${DIRLIST}
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-endfunction(component_directories)
+endfunction(rootfs_directories)
 
 
 #
-# Support setting a component file list to grab from the "mkhere" environment.
+# Support setting a rootfs file list to grab from the "mkhere" environment.
 #
 # File names with an initial slash are retrieved with /mkhere/osfiles.sh and
 # have support for filename globs.
@@ -232,7 +232,7 @@ endfunction(component_directories)
 # File names without inner slash are retrieved as part of the current source
 # directory.
 #
-function(component_files)
+function(rootfs_files)
 	set(OSFILES "")
 	set(LOCALFILES)
 	foreach(FILE IN LISTS ARGV)
@@ -249,7 +249,7 @@ function(component_files)
 	endforeach()
 	if(NOT "${OSFILES}" STREQUAL "")
 		add_custom_command(
-			TARGET ${CURRENT_COMPONENT}-rootfs
+			TARGET ${CURRENT_ROOTFS}-rootfs
 			PRE_BUILD
 			COMMAND "${CMAKE_COMMAND}" "-E"
 				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
@@ -263,28 +263,28 @@ function(component_files)
 	endif()
 	foreach(LOCALFILE IN LISTS LOCALFILES)
 		add_custom_command(
-			TARGET ${CURRENT_COMPONENT}-rootfs
+			TARGET ${CURRENT_ROOTFS}-rootfs
 			PRE_BUILD
 			COMMAND "${CMAKE_COMMAND}" "-E"
 				"copy"
 				"${CMAKE_CURRENT_SOURCE_DIR}/${LOCALFILE}"
 				"${CMAKE_CURRENT_BINARY_DIR}/rootfs/${LOCALFILE}")
 	endforeach()
-endfunction(component_files)
+endfunction(rootfs_files)
 
 
 #
-#TODO# Support setting a component kernel module list???
+#TODO# Support setting a rootfs kernel module list???
 #
-function(component_kernel_modules)
-	message(FATAL_ERROR "component_kernel_modules() is not yet implemented")
-endfunction(component_kernel_modules)
+function(rootfs_kernel_modules)
+	message(FATAL_ERROR "rootfs_kernel_modules() is not yet implemented")
+endfunction(rootfs_kernel_modules)
 
 
 #
-# Support downloads of URLs into the root directory for the component.
+# Support downloads of URLs into the root directory for the rootfs.
 #
-function(component_downloads)
+function(rootfs_downloads)
 	foreach(URL IN LISTS ARGV)
 		string(REGEX REPLACE
 			"^.*/"
@@ -292,9 +292,9 @@ function(component_downloads)
 			BASENAME
 			"${URL}")
 		message(STATUS
-			"Downloading /${BASENAME} in ${CURRENT_COMPONENT} from ${URL}")
+			"Downloading /${BASENAME} in ${CURRENT_ROOTFS} from ${URL}")
 		add_custom_command(
-			TARGET ${CURRENT_COMPONENT}-rootfs
+			TARGET ${CURRENT_ROOTFS}-rootfs
 			PRE_BUILD
 			COMMAND "${CMAKE_COMMAND}"
 				-P "${CMAKE_SOURCE_DIR}/FetchFiles.cmake"
@@ -304,14 +304,14 @@ function(component_downloads)
 				"${CMAKE_CURRENT_BINARY_DIR}/FetchedFiles/${BASENAME}"
 				"${CMAKE_CURRENT_BINARY_DIR}/rootfs/${BASENAME}")
 	endforeach()
-endfunction(component_downloads)
+endfunction(rootfs_downloads)
 
 
 #
 # Support setting fixup bash scripts to run on the rootfs.
 # Note: We append a .sh extension for best portability
 #
-function(component_fixups)
+function(rootfs_fixups)
 	foreach(FIX IN LISTS ARGV)
 		set(FIXSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh")
 		if(NOT EXISTS "${FIXSCRIPT}")
@@ -321,22 +321,22 @@ function(component_fixups)
 			message(FATAL_ERROR "Fixup script ${FIX}.sh not found")
 		endif()
 		add_custom_command(
-			TARGET ${CURRENT_COMPONENT}-rootfs
+			TARGET ${CURRENT_ROOTFS}-rootfs
 			POST_BUILD
 			COMMAND "${FIXSCRIPT}"
 			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	endforeach()
-endfunction(component_fixups)
+endfunction(rootfs_fixups)
 
 #
 # Support adding contributed files per kind of contrib.
-# Silently introduces the contribution kind for this component.
+# Silently introduces the contribution kind for this rootfs.
 #
-function(component_runkind _RUNKIND)
-	component__runkind("${_RUNKIND}")
+function(rootfs_runkind _RUNKIND)
+	rootfs__runkind("${_RUNKIND}")
 	list(REMOVE_AT ARGV 0)
 	add_custom_target(
-		${CURRENT_COMPONENT}-runkind-${_RUNKIND}
+		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
 		DEPENDS ${ARGV})
 	foreach (ARG IN LISTS ARGV)
 		configure_file(
@@ -345,31 +345,31 @@ function(component_runkind _RUNKIND)
 			@ONLY)
 	endforeach()
 	# add_dependencies(
-		# ${CURRENT_COMPONENT}-runkind-${_RUNKIND}
-		# ${CURRENT_COMPONENT}-runkind)
-endfunction(component_runkind)
+		# ${CURRENT_ROOTFS}-runkind-${_RUNKIND}
+		# ${CURRENT_ROOTFS}-runkind)
+endfunction(rootfs_runkind)
 
 
 #
-# Support including a subdirectory with a component.
+# Support including a subdirectory with a rootfs.
 #
-macro(add_component _COMPONAME)
-	set(CURRENT_COMPONENT ${_COMPONAME})
+macro(add_rootfs _COMPONAME)
+	set(CURRENT_ROOTFS ${_COMPONAME})
 	set(CURRENT_RUNKINDS CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_RUNKINDS 0)
 	set(CURRENT_PACKAGES CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_PACKAGES 0)
-	# Support component target rootfs/*
+	# Support rootfs target rootfs/*
 	add_custom_target(${_COMPONAME}-rootfs)
 	execute_process (COMMAND "${CMAKE_COMMAND}" "-E"
 		"make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
-	# Support an ALL target for all the components as a whole.
+	# Support an ALL target for all the rootfs's as a whole.
 	add_custom_target(${_COMPONAME} ALL
 		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
-	component__runkinds()
-	component__addedpackages()
-	# Support component target $KIND_FILE
-	# add_custom_target(${CURRENT_COMPONENT}-runkind-${NULL_RUNKIND})
+	rootfs__runkinds()
+	rootfs__addedpackages()
+	# Support rootfs target $KIND_FILE
+	# add_custom_target(${CURRENT_ROOTFS}-runkind-${NULL_RUNKIND})
 	if(${${_COMPONAME}_RUNKIND} STREQUAL ${NULL_RUNKIND})
 		# Add the target with no dependencies
 		add_custom_target(${_COMPONAME}-runkind)
@@ -381,7 +381,7 @@ endmacro()
 
 
 #
-# Include a subdirectory per component.
+# Include a subdirectory per rootfs.
 #
 add_subdirectory(internetwide)
 add_subdirectory(contrib)

@@ -6,9 +6,9 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-add_component(arpa2dns)
+add_rootfs(arpa2dns)
 
-component_ospackages(
+rootfs_ospackages(
 	busybox # bash
 	python3.7-minimal
 	libpython3.7-stdlib
@@ -16,11 +16,11 @@ component_ospackages(
 	knot knot-dnsutils
 )
 
-component_packages(
+rootfs_packages(
 	twin
 )
 
-component_directories(
+rootfs_directories(
 	/etc
 	/dev
 	/bin /sbin /usr/bin /usr/sbin
@@ -31,7 +31,7 @@ component_directories(
 	/run/knot /var/lib/knot
 )
 
-component_files(
+rootfs_files(
 	# /etc/passwd
 	# /etc/shadow
 	# /etc/group
@@ -41,17 +41,17 @@ component_files(
 	README.MD
 )
 
-component_fixups(
+rootfs_fixups(
 	busybox
 	stripdocs
 )
 
-component_downloads(
+rootfs_downloads(
 	# "http://internetwide.org/index.html"
 	# "http://internetwide.org/tag/identity.html"
 )
 
-component_runkind(OCI_bundle
+rootfs_runkind(OCI_bundle
 	config.json
 )
 
