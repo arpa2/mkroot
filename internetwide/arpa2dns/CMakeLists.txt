@@ -12,6 +12,7 @@ component_ospackages(
 	busybox # bash
 	python3.7-minimal
 	libpython3.7-stdlib
+	# python3.7-six python3.7-enum34
 	knot knot-dnsutils
 )
 
@@ -26,6 +27,8 @@ component_directories(
 	/lib /usr/lib
 	/tmp
 	/proc /sys
+	/var/log
+	/run/knot /var/lib/knot
 )
 
 component_files(
@@ -40,8 +43,7 @@ component_files(
 
 component_fixups(
 	busybox
-	# testfix
-	# otherfix
+	stripdocs
 )
 
 component_downloads(
