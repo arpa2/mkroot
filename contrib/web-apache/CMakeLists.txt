@@ -24,7 +24,7 @@ rootfs_directories(
 	/proc /sys
 	/var/log
 	/var/www /home
-}
+)
 
 rootfs_files(
 	# /etc/passwd

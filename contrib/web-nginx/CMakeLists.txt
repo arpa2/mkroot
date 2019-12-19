@@ -7,7 +7,7 @@ add_rootfs(web_nginx)
 
 rootfs_ospackages(
 	busybox
-	nginx
+	nginx-light
 )
 
 rootfs_packages(
@@ -24,7 +24,7 @@ rootfs_directories(
 	/proc /sys
 	/var/log
 	/var/www /home
-}
+)
 
 rootfs_files(
 	# /etc/passwd

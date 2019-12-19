@@ -7,5 +7,8 @@
 bin/busybox --list | \
 while read CMD
 do
-	ln -s busybox "bin/$CMD"
+	if [ ! -h "bin/$CMD" ]
+	then
+		ln -s busybox "bin/$CMD"
+	fi
 done
