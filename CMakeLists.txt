@@ -122,7 +122,7 @@ macro(rootfs__addedpackages)
 		add_custom_command(
 			TARGET ${_PKGNAME}-have_build
 			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
-				"have" "osdepend" "build")
+				"have" "osdepend" "depend" "build")
 	endforeach()
 endmacro(rootfs__addedpackages)
 #
@@ -132,7 +132,7 @@ macro(add_rootfs_package _PKGNAME)
 		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
 		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
-			"osdepend" "have" "build"
+			"osdepend" "depend" "have" "build"
 		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 			"cpioprefix" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
@@ -196,7 +196,7 @@ function(rootfs_ospackages)
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
-				"osdepend" "have" "build"
+				"osdepend" "depend" "have" "build"
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
@@ -254,7 +254,7 @@ function(rootfs_files)
 			COMMAND "${CMAKE_COMMAND}" "-E"
 				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
 				"${BUILDROOT_MKHERE}/osfiles.sh"
-					"osdepend" "have" "build"
+					"osdepend" "depend" "have" "build"
 			COMMAND "${CMAKE_COMMAND}" "-E"
 				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
 				"${BUILDROOT_MKHERE}/osfiles.sh"
