@@ -7,6 +7,16 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
+option(CONTRIB_WEB_NGINX "Web server: Nginx" OFF)
+if(CONTRIB_WEB_NGINX)
+	add_subdirectory(web-nginx)
+endif()
+
+option(CONTRIB_WEB_APACHE "Web server: Apache" OFF)
+if(CONTRIB_WEB_APACHE)
+	add_subdirectory(web-apache)
+endif()
+
 # option(CONTRIB_contrib1 "Contribution #1" OFF)
 # if(CONTRIB_contrib1)
 # 	add_subdirectory(contrib1)
