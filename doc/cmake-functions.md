@@ -99,12 +99,20 @@ Import packages from the `mkhere` environment.  These packages will be installed
 ```
 rootfs_packages(
         twin
+	arpa2shell
 )
 ```
 
-**TODO:** Control over FLAVOUR and VARIANT is missing.
+Build the named `mkhere` packages from source, possibly after retrieving it first.  Extract the package, along with any libraries from the build environment that its executable binaries need.
 
-Build a `mkhere` package from source, possibly after retrieving it first.  Extract the package, along with any libraries from the build environment that its executable binaries need.
+It is possible to specify the modifiers `VERSION`, `VARIANT` and `FLAVOUR` as they are used by the `mkhere` package, by postfixing it to the package name, as in
+
+```
+rootfs_packages(
+	twin       VERSION=6.6.6
+	arpa2shell VERSION=12.13 VARIANT=zsh FLAVOUR=zesty
+)
+```
 
 ## Fixup Scripts
 

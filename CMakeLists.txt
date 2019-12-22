@@ -17,6 +17,7 @@ include(ExternalData)
 set(NULL_RUNKIND "none")
 # set(DEFAULT_RUNKIND "OCI_bundle")
 set(DEFAULT_RUNKIND "${NULL_RUNKIND}")
+set(DEFAULT_PACKAGE_MODIFIER "(no override)")
 
 set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
 
@@ -38,18 +39,18 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 		endif()
 		message(STATUS
 			"Found stdlib script file in ${BUILDROOT_MKHERE_STDLIB}")
-		get_filename_rootfs(
+		get_filename_component(
 			BUILDROOT_MKHERE_LIB
 			${BUILDROOT_MKHERE_STDLIB}
 			DIRECTORY)
-		get_filename_rootfs(
+		get_filename_component(
 			BUILDROOT_MKHERE
 			"${BUILDROOT_MKHERE_LIB}"
 			DIRECTORY
 			CACHE)
 		unset(BUILDROOT_MKHERE_STDLIB
 			CACHE)
-		# get_filename_rootfs(
+		# get_filename_component(
 			# BUILDROOT
 			# "${BUILDROOT_MKHERE}"
 			# DIRECTORY
@@ -131,56 +132,127 @@ macro(add_rootfs_package _PKGNAME)
 	add_custom_command(
 		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_${_PKGNAME}=${VERSION}
+			VARIANT_${_PKGNAME}=${VARIANT}
+			FLAVOUR_${_PKGNAME}=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 			"osdepend" "depend" "have" "build"
-		COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_${_PKGNAME}=${VERSION}
+			VARIANT_${_PKGNAME}=${VARIANT}
+			FLAVOUR_${_PKGNAME}=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
 			"cpioprefix" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endmacro(add_rootfs_package)
 
 
 #
-# Support setting a rootfs package list.
+# Support setting a rootfs package list, with optional modifiers
+# like VERSION=xxx VARIANT=yyy FLAVOUR=zzz before it.
 #
 function(rootfs_packages)
-	foreach(PKG IN LISTS ARGV)
-		if(NOT ${PKG}_VARIANT)
-			set(${PKG}_VARIANT
-				"(standard)"
-				CACHE STRING "Variant of package ${PKG}")
-			execute_process(
-				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" variants
-				RESULT_VARIABLE _EXIT
-				OUTPUT_VARIABLE ${PKG}_VARIANTS)
-			if(NOT _EXIT EQUAL 0)
-				set (${PKG}_VARIANTS red white blue)
-				message(WARNING #TODO# FATAL_ERROR
-					"Failed to find variants for rootfs ${CURRENT_ROOTFS} package ${PKG}, exit(${_EXIT})")
+	set(VERSION "")
+	set(VARIANT "")
+	set(FLAVOUR "")
+	set(DEFERPKG "")
+	set(TRAILER " ")
+	foreach(PKG IN LISTS ARGV TRAILER)
+		#
+		# Process prefix modifiers VERSION, VARIANT and FLAVOUR
+		if("${PKG}" MATCHES "^(VERSION|VARIANT|FLAVOUR)=")
+			string(SUBSTRING "${PKG}" 0  7 PKGMOD)
+			string(SUBSTRING "${PKG}" 8 -1 PKGVAL)
+			#DEBUG# message(STATUS "PKGMOD=${PKGMOD}= PKGVAL=${PKGVAL}= OLDVAL=${${OLDVAL}}")
+			# Set the local VERSION, VARIANT or FLAVOUR variable
+			set(${PKGMOD} ${PKGVAL})
+			# Do not process the $PKG as a package name
+			continue()
+		endif()
+		#
+		# Only continue the loop if we have a deferred package
+		if("${DEFERPKG}" STREQUAL "")
+			set(DEFERPKG "${PKG}")
+			continue()
+		endif()
+		#
+		# Have cache variables for all package modifiers
+		if(NOT ${CURRENT_ROOTFS}_VERSION_${DEFERPKG})
+			set(${CURRENT_ROOTFS}_VERSION_${DEFERPKG}
+				${DEFAULT_PACKAGE_MODIFIER}
+				CACHE STRING "Version of package ${DEFERPKG}")
+		endif()
+		if(NOT ${CURRENT_ROOTFS}_VARIANT_${DEFERPKG})
+			set(${CURRENT_ROOTFS}_VARIANT_${DEFERPKG}
+				${DEFAULT_PACKAGE_MODIFIER}
+				CACHE STRING "Variant of package ${DEFERPKG}")
+			if(NOT DEFINED ${DEFERPKG}_VARIANTS)
+				execute_process(
+					COMMAND "${BUILDROOT_MKHERE}/${DEFERPKG}.sh" variants
+					RESULT_VARIABLE _EXIT
+					OUTPUT_VARIABLE ${DEFERPKG}_VARIANTS)
+				if(NOT _EXIT EQUAL 0)
+					set (${DEFERPKG}_VARIANTS red white blue)
+					message(WARNING #TODO# FATAL_ERROR
+						"Failed to find variants for rootfs ${CURRENT_ROOTFS} package ${DEFERPKG}, exit(${_EXIT})")
+				endif()
 			endif()
 			set_property(CACHE
-				${PKG}_VARIANT
+				${CURRENT_ROOTFS}_VARIANT_${DEFERPKG}
 				PROPERTY STRINGS
-				"(standard)" ${${PKG}_VARIANTS})
+				${DEFAULT_PACKAGE_MODIFIER}
+				${${DEFERPKG}_VARIANTS})
 		endif()
-		if(NOT DEFINED ${PKG}_FLAVOUR)
-			set(${PKG}_FLAVOUR
-				"(standard)"
-				CACHE STRING "Flavour of package ${PKG}")
-			execute_process(
-				COMMAND "${BUILDROOT_MKHERE}/${PKG}.sh" flavours
-				RESULT_VARIABLE _EXIT
-				OUTPUT_VARIABLE ${PKG}_FLAVOURS)
-			if(NOT _EXIT EQUAL 0)
-				set (${PKG}_FLAVOURS tangy sweet bitter umami)
-				message(WARNING #TODO# FATAL_ERROR
-					"Failed to find flavours for rootfs ${CURRENT_ROOTFS} package ${PKG}")
+		if(NOT DEFINED ${CURRENT_ROOTFS}_FLAVOUR_${DEFERPKG})
+			set(${CURRENT_ROOTFS}_FLAVOUR_${DEFERPKG}
+				${DEFAULT_PACKAGE_MODIFIER}
+				CACHE STRING "Flavour of package ${DEFERPKG}")
+			if(NOT DEFINED ${DEFERPKG}_FLAVOURS)
+				execute_process(
+					COMMAND "${BUILDROOT_MKHERE}/${DEFERPKG}.sh" flavours
+					RESULT_VARIABLE _EXIT
+					OUTPUT_VARIABLE ${DEFERPKG}_FLAVOURS)
+				if(NOT _EXIT EQUAL 0)
+					set (${DEFERPKG}_FLAVOURS tangy sweet bitter umami)
+					message(WARNING #TODO# FATAL_ERROR
+						"Failed to find flavours for rootfs ${CURRENT_ROOTFS} package ${DEFERPKG}")
+				endif()
 			endif()
 			set_property(CACHE
-				${PKG}_FLAVOUR
+				${CURRENT_ROOTFS}_FLAVOUR_${DEFERPKG}
 				PROPERTY STRINGS
-				"(standard)" ${${PKG}_FLAVOURS})
+				${DEFAULT_PACKAGE_MODIFIER}
+				${${DEFERPKG}_FLAVOURS})
 		endif()
-		add_rootfs_package(${PKG})
+		#
+		# Override from cache variables
+		foreach(PKGMOD IN ITEMS "VERSION" "VARIANT" "FLAVOUR")
+			set(CACHEVAR "${CURRENT_ROOTFS}_${PKGMOD}_${DEFERPKG}")
+			#DEBUG# message(STATUS "Cache variable ${CACHEVAR} is set to ${${CACHEVAR}}")
+			if(NOT "$CACHE{${CACHEVAR}}" STREQUAL "${DEFAULT_PACKAGE_MODIFIER}")
+				if(NOT "${${PKGMOD}}" STREQUAL "")
+					if (NOT "${${PKGMOD}}" STREQUAL "$CACHE{${CACHEVAR}}")
+						message(WARNING "Cache variable ${CACHEVAR} overrides scripted ${${PKGMOD}} to $CACHE{${CACHEVAR}}")
+					endif()
+					#DEBUG# message(STATUS "Package modifier ${PKGMOD} was    ${${PKGMOD}}")
+				endif()
+				set(${PKGMOD} "$CACHE{${CACHEVAR}}")
+				#DEBUG# message(STATUS "Package modifier ${PKGMOD} is now ${${PKGMOD}}")
+			endif()
+		endforeach()
+		#
+		# Handle deferred package; defer this one
+		if (NOT "${DEFERPKG}" STREQUAL "")
+			# Add the (modified) package to the current rootfs
+			#DEBUG# message(STATUS "During \"${PKG}\", adding \"${DEFERPKG}\" with VERSION=${VERSION}= VARIANT=${VARIANT}= FLAVOUR=${FLAVOUR}=")
+			add_rootfs_package(${DEFERPKG})
+			# Drop any previously defined package modifiers
+			set(VERSION "")
+			set(VARIANT "")
+			set(FLAVOUR "")
+		endif()
+		set(DEFERPKG "${PKG}")
 	endforeach()
 endfunction(rootfs_packages)
 
