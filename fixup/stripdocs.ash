@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/ash
 #
 # Remove documentation files from the rootfs.
 #

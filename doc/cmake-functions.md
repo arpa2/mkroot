@@ -118,9 +118,9 @@ rootfs_packages(
 
 ```
 rootfs_fixups(
-	testfix
-	otherfix
+	testfix.sh
+	otherfix.csh
 )
 ```
 
-This defines fixup scripts that are run to tweak the target file system as desired.  The scripts *do not run chrooted* but merely with the root file system of the rootfs as their working directory, so *all file references must be relative* to that.  Some tweaks may become a standard facility, but mostly the script names are expected to reference a shell executable with an added `.sh` extension in the rootfs's source directory.
+This defines fixup scripts that are run to tweak the target file system as desired.  The scripts run chrooted, and any files referenced are therefore part of the target file system.  Some tweaks may become a standard facility, and are part of the `fixup` directory in the project root.  The extensions to the script names help to diversify them across script interpreters on the target system, but usually the hash-bang notation will take care of that.

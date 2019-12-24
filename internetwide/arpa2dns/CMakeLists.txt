@@ -10,14 +10,18 @@ add_rootfs(arpa2dns)
 
 rootfs_ospackages(
 	busybox # bash
+	python3-minimal
+	libpython3.7-minimal
+	libpython3-stdlib
 	python3.7-minimal
 	libpython3.7-stdlib
-	# python3.7-six python3.7-enum34
+	python3-six
 	knot knot-dnsutils
 )
 
 rootfs_packages(
-	twin
+	arpa2shell	VERSION=1.2.3
+	twin		FLAVOUR=tangy VARIANT=cooked VERSION=12.16
 )
 
 rootfs_directories(
@@ -42,8 +46,8 @@ rootfs_files(
 )
 
 rootfs_fixups(
-	busybox
-	stripdocs
+	busybox.ash
+	stripdocs.ash
 )
 
 rootfs_downloads(

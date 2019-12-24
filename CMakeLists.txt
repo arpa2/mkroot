@@ -385,18 +385,25 @@ endfunction(rootfs_downloads)
 #
 function(rootfs_fixups)
 	foreach(FIX IN LISTS ARGV)
-		set(FIXSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}.sh")
+		set(FIXSCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/${FIX}")
 		if(NOT EXISTS "${FIXSCRIPT}")
-			set(FIXSCRIPT "${CMAKE_SOURCE_DIR}/fixup/${FIX}.sh")
+			set(FIXSCRIPT "${CMAKE_SOURCE_DIR}/fixup/${FIX}")
 		endif()
 		if(NOT EXISTS "${FIXSCRIPT}")
-			message(FATAL_ERROR "Fixup script ${FIX}.sh not found")
+			message(FATAL_ERROR "Fixup script ${FIX} not found")
 		endif()
 		add_custom_command(
 			TARGET ${CURRENT_ROOTFS}-rootfs
 			POST_BUILD
-			COMMAND "${FIXSCRIPT}"
-			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+			COMMAND "${CMAKE_COMMAND}"
+				-P "${CMAKE_SOURCE_DIR}/RunFixup.cmake"
+				"${CMAKE_CURRENT_BINARY_DIR}/rootfs"
+				"${FIXSCRIPT}"
+			RESULT_VARIABLE _EXIT
+		)
+		if(NOT ${_EXIT} EQUAL 0)
+			message(FATAL_ERROR "Failed to run fixup ${FIX}")
+		endif()
 	endforeach()
 endfunction(rootfs_fixups)
 

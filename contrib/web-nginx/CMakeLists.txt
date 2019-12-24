@@ -37,8 +37,8 @@ rootfs_files(
 )
 
 rootfs_fixups(
-	busybox
-	stripdocs
+	busybox.ash
+	stripdocs.ash
 )
 
 rootfs_downloads(
