@@ -21,7 +21,7 @@ rootfs_ospackages(
 
 rootfs_packages(
 	arpa2shell	VERSION=1.2.3
-	twin		FLAVOUR=tangy VARIANT=cooked VERSION=12.16
+	twin		VERSION=v0.8.1
 )
 
 rootfs_directories(

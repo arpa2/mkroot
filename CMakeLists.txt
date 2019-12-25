@@ -14,9 +14,6 @@ cmake_minimum_required(VERSION 3.13)
 include(ExternalData)
 
 
-set(NULL_RUNKIND "none")
-# set(DEFAULT_RUNKIND "OCI_bundle")
-set(DEFAULT_RUNKIND "${NULL_RUNKIND}")
 set(DEFAULT_PACKAGE_MODIFIER "(no override)")
 
 set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
@@ -70,39 +67,6 @@ else()
 	message(STATUS
 		"Using BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
 endif()
-
-
-#
-# Allow the choice of the kind of runtime environment.
-# (This function is called automatically for each rootfs.)
-#
-function(rootfs__runkinds)
-	if(NOT ${CURRENT_ROOTFS}_RUNKIND)
-		set(${CURRENT_ROOTFS}_RUNKIND "${DEFAULT_RUNKIND}"
-			CACHE STRING "Kind of runtime for rootfs ${CURRENT_ROOTFS}")
-	endif()
-	list(REMOVE_DUPLICATES CURRENT_RUNKINDS)
-	list(LENGTH CURRENT_RUNKINDS _LEN)
-	list(FIND CURRENT_RUNKINDS "${DEFAULT_RUNKIND}" _IDX)
-	if(${_LEN} EQUAL 0)
-		#FIX# Avoid crash of ccmake on empty options list (!)
-		#OLD# set(CURRENT_RUNKINDS "${DEFAULT_RUNKIND}")
-		#DOUBLE# rootfs_contribs ("${DEFAULT_RUNKIND}")
-	elseif(${_IDX} EQUAL -1)
-		message(WARNING
-			"No contributions for runtime kind ${DEFAULT_RUNKIND} in rootfs ${CURRENT_ROOTFS}")
-	endif()
-	set_property(CACHE
-		${CURRENT_ROOTFS}_RUNKIND
-		PROPERTY STRINGS
-		"${DEFAULT_RUNKIND}" ${CURRENT_RUNKINDS})
-endfunction(rootfs__runkinds)
-#
-macro(rootfs__runkind)
-	#TODO# Appended value get forgotten (scoping, no doubt)
-	#TODO# message(STATUS "Appending ${ARGV} to CURRENT_RUNKINDS=${CURRENT_RUNKINDS} for rootfs ${CURRENT_ROOTFS}")
-	list(APPEND CURRENT_RUNKINDS ${ARGV})
-endmacro(rootfs__runkind)
 
 
 #
@@ -409,23 +373,22 @@ endfunction(rootfs_fixups)
 
 #
 # Support adding contributed files per kind of contrib.
-# Silently introduces the contribution kind for this rootfs.
 #
 function(rootfs_runkind _RUNKIND)
-	rootfs__runkind("${_RUNKIND}")
 	list(REMOVE_AT ARGV 0)
 	add_custom_target(
 		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
 		DEPENDS ${ARGV})
+	#TODO# Following configure_file sequence should be run for that target
 	foreach (ARG IN LISTS ARGV)
 		configure_file(
 			"${ARG}.in"
 			"${CMAKE_CURRENT_BINARY_DIR}/${ARG}"
 			@ONLY)
 	endforeach()
-	# add_dependencies(
-		# ${CURRENT_ROOTFS}-runkind-${_RUNKIND}
-		# ${CURRENT_ROOTFS}-runkind)
+	add_dependencies(
+		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
+		${CURRENT_ROOTFS}-runkind)
 endfunction(rootfs_runkind)
 
 
@@ -434,8 +397,6 @@ endfunction(rootfs_runkind)
 #
 macro(add_rootfs _COMPONAME)
 	set(CURRENT_ROOTFS ${_COMPONAME})
-	set(CURRENT_RUNKINDS CLUMSY_EMPTY)
-	list(REMOVE_AT CURRENT_RUNKINDS 0)
 	set(CURRENT_PACKAGES CLUMSY_EMPTY)
 	list(REMOVE_AT CURRENT_PACKAGES 0)
 	# Support rootfs target rootfs/*
@@ -443,19 +404,11 @@ macro(add_rootfs _COMPONAME)
 	execute_process (COMMAND "${CMAKE_COMMAND}" "-E"
 		"make_directory" "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	# Support an ALL target for all the rootfs's as a whole.
-	add_custom_target(${_COMPONAME} ALL
-		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
-	rootfs__runkinds()
 	rootfs__addedpackages()
 	# Support rootfs target $KIND_FILE
-	# add_custom_target(${CURRENT_ROOTFS}-runkind-${NULL_RUNKIND})
-	if(${${_COMPONAME}_RUNKIND} STREQUAL ${NULL_RUNKIND})
-		# Add the target with no dependencies
-		add_custom_target(${_COMPONAME}-runkind)
-	else()
-		add_custom_target(${_COMPONAME}-runkind
-			DEPENDS ${_COMPONAME}-runkind-${${_COMPONAME}_RUNKIND})
-	endif()
+	add_custom_target(${_COMPONAME}-runkind)
+	add_custom_target(${_COMPONAME} ALL
+		DEPENDS ${_COMPONAME}-rootfs ${_COMPONAME}-runkind)
 endmacro()
 
 

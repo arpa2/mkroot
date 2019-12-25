@@ -11,7 +11,7 @@ rootfs_ospackages(
 )
 
 rootfs_packages(
-	twin
+	twin	VERSION=v0.8.1
 	#arpa2id modules/extensions...
 )
 
