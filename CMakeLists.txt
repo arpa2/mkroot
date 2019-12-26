@@ -376,6 +376,8 @@ endfunction(rootfs_fixups)
 #
 function(rootfs_runkind _RUNKIND)
 	list(REMOVE_AT ARGV 0)
+	set(INDEX "${CMAKE_CURRENT_BINARY_DIR}/${_RUNKIND}.index")
+	file(WRITE "${INDEX}" "rootfs/\n")
 	add_custom_target(
 		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
 		DEPENDS ${ARGV})
@@ -385,6 +387,7 @@ function(rootfs_runkind _RUNKIND)
 			"${ARG}.in"
 			"${CMAKE_CURRENT_BINARY_DIR}/${ARG}"
 			@ONLY)
+		file(APPEND "${INDEX}" "${ARG}\n")
 	endforeach()
 	add_dependencies(
 		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
