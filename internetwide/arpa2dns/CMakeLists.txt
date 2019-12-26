@@ -59,3 +59,9 @@ rootfs_runkind(OCI_bundle
 	config.json
 )
 
+# rootfs_kernel(
+	# ftdi_sio
+	# loop
+# )
+
+

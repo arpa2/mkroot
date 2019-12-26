@@ -124,3 +124,49 @@ rootfs_fixups(
 ```
 
 This defines fixup scripts that are run to tweak the target file system as desired.  The scripts run chrooted, and any files referenced are therefore part of the target file system.  Some tweaks may become a standard facility, and are part of the `fixup` directory in the project root.  The extensions to the script names help to diversify them across script interpreters on the target system, but usually the hash-bang notation will take care of that.
+
+## Kernels and Kernel Modules
+
+This is *early and experimental support* for retrieving a kernel with
+specified modules.
+
+Most of this is generic functionality, as all boot loader start an image
+(usually a kernel) and can supply additional information (usually a rootfs).
+Also, the rootfs (that we already build here) can often hold some form of
+modules that can plug into the kernel.  This can be specified with this
+target:
+
+```
+rootfs_kernel(
+	ftdi_sio
+	loop
+)
+```
+
+The mere call of this function implied that the kernel should be retrieved,
+in a form fit for a boot loader.  It is possible that more than one kernel
+is provided.
+
+**TODO:** Currently we install kernels in the root file system, which 
+
+If you want to limit the output to a specific kernel version, start with
+`VERSION=1.2.3` or so.  If you want to limit the output to a specific
+variant, usually denoted by words in the kernel's file name, then you can
+specify this with something like `VARIANT=smp` or VARIANT="smp pae"` or
+such.
+
+Note that the underlying operating system may have no kernel, or it may
+not have one matching the `VERSION` and `VARIANT` constraints.  If this
+is the case, you shall not have the kernel installed.  **TODO:** Error!
+
+The named modules will be retrieved from their position in the underlying
+file system, and they will be installed in the same location in the target
+rootfs.  It is possible to name no modules at all.  When multiple kernels
+are installed, then all these kernels will independently receive these
+kernel modules.  **TODO:** Error when not found!
+
+**TODO:** Modules may have dependencies on other modules; these should be
+automatically included.  This is not done yet.
+
+*As you can see, there are many TODO for the `rootfs_kernel()` command.*
+

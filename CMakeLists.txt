@@ -416,6 +416,86 @@ endmacro()
 
 
 #
+# Support including one or more kernel versions, along with named modules.
+# The format is rootfs_kernel(MOD1 MOD2 MOD3).  Kernel version information
+# can be set in script or cache variables:
+#  - ${xxx_VERSION_oskernel} for a kernel version number
+#  - ${xxx_VARIANT_oskernel} for kernel additional words/flags
+#  - ${xxx_FLAVOUR_oskernelmodules} for a space-separated module name list
+#TODO# Support VERSION= and VARIANT= options in the beginning.
+#
+# The intention of this functionality is intended to not be Linux-specific,
+# since most operating systems have a notion of a kernel image to be loaded
+# during boot, and a file system that can hold additional modules for it.
+#
+# It is possible to add no modules and simply use rootfs_kernel() to
+# retrieve the current kernel or kernels.
+#
+function(rootfs_kernel)
+	if(NOT DEFINED ${CURRENT_ROOTFS}_VERSION_oskernel)
+		set(${CURRENT_ROOTFS}_VERSION_oskernel
+			${DEFAULT_PACKAGE_MODIFIER}
+			CACHE STRING "Version of kernel")
+	endif()
+	if(NOT DEFINED ${CURRENT_ROOTFS}_VARIANT_oskernel)
+		set(${CURRENT_ROOTFS}_VARIANT_oskernel
+			${DEFAULT_PACKAGE_MODIFIER}
+			CACHE STRING "Variant restrictions of kernel")
+	endif()
+	set(VERSION ${${CURRENT_ROOTFS}_VERSION_oskernel})
+	set(VARIANT ${${CURRENT_ROOTFS}_VARIANT_oskernel})
+	if("${VERSION}" STREQUAL "${DEFAULT_PACKAGE_MODIFIER}")
+		set(VERSION)
+	endif()
+	if("${VARIANT}" STREQUAL "${DEFAULT_PACKAGE_MODIFIER}")
+		set(VARIANT)
+	endif()
+	while("${ARGV}" MATCHES "^(VERSION|VARIANT)=")
+		list(GET ARGV 0 KRNARG)
+		list(REMOVE_AT ARGV 0)
+		string(SUBSTRING "${KRNARG}" 0  7 KRNMOD)
+		string(SUBSTRING "${KRNARG}" 8 -1 KRNVAL)
+		if(NOT "${${KRNMOD}}" STREQUAL "")
+			message(WARNING "Cache variable ${CURRENT_ROOTFS}_oskernel_${KRNMOD} overrides scripted ${KRNVAL} to ${${KRNMOD}}")
+		else()
+			set(${KRNMOD} "${KRNVAL}")
+		endif()
+	endwhile()
+	add_custom_command(
+		TARGET ${CURRENT_ROOTFS}-rootfs  #TODO#ELSEWHERE#
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_oskernel=${VERSION}
+			VARIANT_oskernel=${VARIANT}
+			"${BUILDROOT_MKHERE}/oskernel.sh"
+			"osdepend" "depend" "have" "build"
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_oskernel=${VERSION}
+			VARIANT_oskernel=${VARIANT}
+			"${BUILDROOT_MKHERE}/oskernel.sh"
+			"cpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+	list(JOIN ARGV " " FLAVOUR)
+	add_custom_command(
+		TARGET ${CURRENT_ROOTFS}-rootfs
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_oskernel=${VERSION}
+			VARIANT_oskernel=${VARIANT}
+			FLAVOUR_oskernelmodules=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oskernelmodules.sh"
+			"osdepend" "depend" "have" "build"
+		COMMAND ${CMAKE_COMMAND} -E env
+			VERSION_oskernel=${VERSION}
+			VARIANT_oskernel=${VARIANT}
+			FLAVOUR_oskernelmodules=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oskernelmodules.sh"
+			"cpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(rootfs_kernel)
+
+
+#
 # Include a subdirectory per rootfs.
 #
 add_subdirectory(internetwide)
