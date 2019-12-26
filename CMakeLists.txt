@@ -380,7 +380,19 @@ function(rootfs_runkind _RUNKIND)
 	file(WRITE "${INDEX}" "rootfs/\n")
 	add_custom_target(
 		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
-		DEPENDS ${ARGV})
+		# DEPENDS ${ARGV})
+	)
+	if(EXISTS "${CMAKE_SOURCE_DIR}/runkind/${_RUNKIND}.sh")
+		add_custom_command(
+			TARGET ${CURRENT_ROOTFS}-runkind-${_RUNKIND}
+			POST_BUILD
+			COMMAND ${CMAKE_COMMAND}
+				-P "${CMAKE_SOURCE_DIR}/RunKind.cmake"
+				"${CMAKE_SOURCE_DIR}/runkind/${_RUNKIND}.sh"
+				"${CMAKE_CURRENT_BINARY_DIR}")
+	else()
+		message(WARNING "Missing support script runkind/${_RUNKIND}.sh")
+	endif()
 	#TODO# Following configure_file sequence should be run for that target
 	foreach (ARG IN LISTS ARGV)
 		configure_file(
@@ -390,8 +402,11 @@ function(rootfs_runkind _RUNKIND)
 		file(APPEND "${INDEX}" "${ARG}\n")
 	endforeach()
 	add_dependencies(
+		${CURRENT_ROOTFS}-runkind
+		${CURRENT_ROOTFS}-runkind-${_RUNKIND})
+	add_dependencies(
 		${CURRENT_ROOTFS}-runkind-${_RUNKIND}
-		${CURRENT_ROOTFS}-runkind)
+		${CURRENT_ROOTFS}-rootfs)
 endfunction(rootfs_runkind)
 
 
