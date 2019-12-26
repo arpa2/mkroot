@@ -125,6 +125,25 @@ rootfs_fixups(
 
 This defines fixup scripts that are run to tweak the target file system as desired.  The scripts run chrooted, and any files referenced are therefore part of the target file system.  Some tweaks may become a standard facility, and are part of the `fixup` directory in the project root.  The extensions to the script names help to diversify them across script interpreters on the target system, but usually the hash-bang notation will take care of that.
 
+## Terminal Information
+
+You can add `terminfo(5)` database entries for your selection of terminals
+with a simple command
+
+```
+rootfs_terminfo(
+	ansi
+	linux
+	xterm*
+	vt*
+)
+```
+
+Note how glob-styled patterns are possible, such as `vt*` that will likely
+select things like `vt52`, `vt100` and `vt220` and perhaps more along the
+same lines.
+
+
 ## Kernels and Kernel Modules
 
 This is *early and experimental support* for retrieving a kernel with

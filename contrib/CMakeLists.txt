@@ -7,6 +7,11 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
+option(CONTRIB_MINICOM_TOOL "Minicom Tool (also a nice demo)" OFF)
+if(CONTRIB_MINICOM_TOOL)
+	add_subdirectory(minicom-tool)
+endif()
+
 option(CONTRIB_WEB_NGINX "Web server: Nginx" OFF)
 if(CONTRIB_WEB_NGINX)
 	add_subdirectory(web-nginx)

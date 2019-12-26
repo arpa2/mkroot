@@ -1,0 +1,16 @@
+::sysinit:/usr/sbin/gpm -m /dev/input/mice -t exps2
+
+# Note: nothing on default console, but instead we open tty1
+# ::askfirst:-/bin/ash
+tty1::respawn:/twin_tty.ash
+tty2::askfirst:/twin_tty.ash
+tty3::askfirst:-/bin/ash
+tty4::askfirst:-/bin/ash
+# Remote access daemons, sure, but must create an account first
+tty5::respawn:/usr/bin/ttyd -- /usr/sbin/twdm -1
+tty6::respawn:/usr/sbin/dropbear -RFEgjk
+
+::restart:/sbin/init
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/umount -a -r
+::shutdown:/sbin/swapoff -a

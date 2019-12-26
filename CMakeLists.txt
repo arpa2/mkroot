@@ -431,6 +431,26 @@ endmacro()
 
 
 #
+# Support including terminfo(5) database files.
+#
+function(rootfs_terminfo)
+	list(JOIN ARGV " " FLAVOUR)
+	add_custom_command(
+		TARGET ${CURRENT_ROOTFS}-rootfs
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/osterminfo.sh"
+			"osdepend" "depend" "have" "build"
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/osterminfo.sh"
+			"cpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(rootfs_terminfo)
+
+
+#
 # Support including one or more kernel versions, along with named modules.
 # The format is rootfs_kernel(MOD1 MOD2 MOD3).  Kernel version information
 # can be set in script or cache variables:
