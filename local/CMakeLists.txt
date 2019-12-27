@@ -9,6 +9,14 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-# add_subdirectory(local1)
-# add_subdirectory(local2)
-# add_subdirectory(local3)
+file(GLOB SUBDIRS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/*")
+
+foreach(SUBDIR ${SUBDIRS})
+	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}/CMakeLists.txt")
+		option("LOCAL_${SUBDIR}" "local/${SUBDIR} extension" ON)
+		if(CONTRIB_MINICOM_TOOL)
+			add_subdirectory ("${SUBDIR}")
+		endif()
+	endif()
+endforeach()
+

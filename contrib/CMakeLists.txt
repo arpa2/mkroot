@@ -22,6 +22,11 @@ if(CONTRIB_WEB_APACHE)
 	add_subdirectory(web-apache)
 endif()
 
+option(CONTRIB_WINDOWS_MKHERE "Windows \"mkhere\" buildroot (can bootstrap)" OFF)
+if(CONTRIB_WINDOWS_MKHERE)
+	add_subdirectory(windows-mkhere)
+endif()
+
 # option(CONTRIB_contrib1 "Contribution #1" OFF)
 # if(CONTRIB_contrib1)
 # 	add_subdirectory(contrib1)
