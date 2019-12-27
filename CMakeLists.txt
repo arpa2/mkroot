@@ -451,6 +451,46 @@ endfunction(rootfs_terminfo)
 
 
 #
+# Support including commands from the underlying build root.
+#
+function(rootfs_oscommands)
+	list(JOIN ARGV " " FLAVOUR)
+	add_custom_command(
+		TARGET ${CURRENT_ROOTFS}-rootfs
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oscommands.sh"
+			"osdepend" "depend" "have" "build"
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oscommands.sh"
+			"cpioprefix" "oslibcpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(rootfs_oscommands)
+
+
+#
+# Support including libraries from the underlying build root.
+#
+function(rootfs_oslibraries)
+	list(JOIN ARGV " " FLAVOUR)
+	add_custom_command(
+		TARGET ${CURRENT_ROOTFS}-rootfs
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oslibraries.sh"
+			"osdepend" "depend" "have" "build"
+		COMMAND ${CMAKE_COMMAND} -E env
+			FLAVOUR_osterminfo=${FLAVOUR}
+			"${BUILDROOT_MKHERE}/oslibraries.sh"
+			"cpioprefix" "oslibcpio" "install"
+		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
+endfunction(rootfs_oslibraries)
+
+
+#
 # Support including one or more kernel versions, along with named modules.
 # The format is rootfs_kernel(MOD1 MOD2 MOD3).  Kernel version information
 # can be set in script or cache variables:

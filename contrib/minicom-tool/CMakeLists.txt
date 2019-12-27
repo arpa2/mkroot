@@ -16,6 +16,7 @@ rootfs_ospackages(
 	busybox
 	dialog
 	minicom
+	dropbear-bin
 	socat
 	gpm
 )
@@ -54,9 +55,11 @@ rootfs_files(
 	README.MD
 	# Scripts, also intended for the root directory
 	init.ash
-	main.ash welcome.ash readlog.ash setupserver.ash client.ash mbusd-man.ash twin_tty.ash
+	main.ash readlog.ash setupserver.ash client.ash mbusd-man.ash twin_tty.ash
+	welcome.ash welcome-modbus.ash welcome-minicom.ash
 	# Configuration files
 	inittab
+	udhcpc.ash
 	ide.twinrc
 )
 
@@ -67,6 +70,17 @@ rootfs_terminfo(
 	linux
 	xterm*
 	vt* 
+)
+
+# Include commands from the OS
+#
+rootfs_oscommands(
+)
+
+# Include libraries from the OS
+#
+rootfs_oslibraries(
+	nss_files
 )
 
 # Include kernel modules for access to serial ports
