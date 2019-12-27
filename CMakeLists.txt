@@ -20,6 +20,12 @@ set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
 
 
 #
+# Support bootstrapping with locally built "mkhere" environments
+#
+add_subdirectory(bootstrap)
+
+
+#
 # Require a `mkhere` link.  Scan for mkhere/lib/stdlib to exist.
 #
 if(NOT DEFINED BUILDROOT_MKHERE)
