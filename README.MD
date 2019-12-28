@@ -65,16 +65,33 @@ personalised setup.
 
 ## Quickstart on Linux
 
+**Simplest start:**
+You can have a "mkhere" setup bootstrapped by the "mkroot" system:
+
+```
+git clone https://github.com/arpa2/mkroot
+mkdir build4debian
+cd build4debian
+cmake -D BOOTSTRAP_DEBIAN_MKHERE=ON \
+      -D BUILDROOT_MKHERE="$(pwd)/bootstrap/debian/stable/rootfs/mkhere" \
+      ../mkroot
+make
+ls -d */*/rootfs
+```
+
+**Bring your own:**
+If you already have a build OS with `/mkhere` installed in its root dir
+`$BUILDROOT`, you might use
+
 ```
 git clone https://github.com/arpa2/mkroot
 mkdir build4linux
 cd build4linux
 ln -s "$BUILDROOT/mkhere" mkhere
 cmake ../mkroot
-make all
-ls */*/rootfs
+make
+ls -d */*/rootfs
 ```
-
 
 ## General Usage
 
