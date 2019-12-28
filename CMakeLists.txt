@@ -11,6 +11,8 @@
 
 cmake_minimum_required(VERSION 3.13)
 
+project(mkroot LANGUAGES)
+
 include(ExternalData)
 
 
@@ -37,43 +39,14 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 		set(BUILDROOT_MKHERE "${CMAKE_BINARY_DIR}/${BOOTSTRAP_MKHERE_MENU}"
 			CACHE STRING
 			"Bootstrapping menu sets \"mkhere\" context for these \"mkroot\" builds")
-	elseif (${CMAKE_VERSION} VERSION_LESS "3.14.0")
-		# Older CMAKE have no builtin for reading symbolic links
-		find_file(
-			BUILDROOT_MKHERE_STDLIB
-			stdlib
-			PATHS ${CMAKE_CURRENT_BINARY_DIR}/mkhere/lib
-			NO_DEFAULT_PATH)
-		if("${BUILDROOT_MKHERE_STDLIB}" STREQUAL "BUILDROOT_MKHERE_STDLIB-NOTFOUND")
-			message(FATAL_ERROR
-				"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}; you may define BOOTSTRAP_DEBIAN_MKHERE=ON if you want to select a bootstrapping environment from a menu.")
-		endif()
+	elseif(EXISTS "${CMAKE_BINARY_DIR}/mkhere/lib/stdlib")
+		# Dropped support of "mkhere" in a subdirectory; manually link
 		message(STATUS
-			"Found stdlib script file in ${BUILDROOT_MKHERE_STDLIB}")
-		get_filename_component(
-			BUILDROOT_MKHERE_LIB
-			${BUILDROOT_MKHERE_STDLIB}
-			DIRECTORY)
-		get_filename_component(
-			BUILDROOT_MKHERE
-			"${BUILDROOT_MKHERE_LIB}"
-			DIRECTORY
-			CACHE)
-		unset(BUILDROOT_MKHERE_STDLIB
-			CACHE)
-		# get_filename_component(
-			# BUILDROOT
-			# "${BUILDROOT_MKHERE}"
-			# DIRECTORY
-			# CACHE)
-		# message(STATUS
-			# "Found build root directory in ${BUILDROOT}")
+			"Found mkdir structure in ${CMAKE_BINARY_DIR}/mkhere")
+		set(BUILDROOT_MKHERE "${CMAKE_BINARY_DIR}/mkhere")
 	else()
-		# 3.14+ can resolve symlink (note that file(READ_SYMLINK...)
-		# Note: Fatal if the link is not found, or if not a link...
-		file(READ_SYMLINK
-			"mkhere"
-			BUILDROOT_MKHERE)
+		message(FATAL_ERROR
+			"\n\nThere is no \"mkhere\" symlink.  Please do either of the following:\n (a) Create it, pointing to a \"mkhere\" checkout in a build OS;\n (b) Define BUILDROOT_MKHERE as the \"mkhere\" checking in a build OS;\n (c) Define BOOTSTRAP_DEBIAN_MKHERE=ON and\n     BOOTSTRAP_MKHERE_MENU=\"bootstrap/debian/stable/rootfs/mkhere\".\n\n")
 	endif()
 	message(STATUS
 		"Configured BUILDROOT_MKHERE directory ${BUILDROOT_MKHERE}")
