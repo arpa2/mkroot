@@ -37,6 +37,7 @@ endif()
 
 
 # Tell the parent CMakeLists.txt about the DEBIAN_ROOTFS to use
+#
 set(DEBIAN_ROOTFS
 	"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs"
 	PARENT_SCOPE)
@@ -80,7 +81,7 @@ if(BOOTSTRAP_DEBIAN_MKHERE)
 		#TODO# Iterate over a list of suites entered... how?
 		set(DEBIAN_ROOTFS
 			"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs")
-		if(IS_DIRECTORY "${DEBIAN_ROOTFS}")
+		if(IS_DIRECTORY "${DEBIAN_ROOTFS}/mkhere")
 			message(STATUS
 				"Reusing bootstrapping directory ${DEBIAN_ROOTFS}")
 		else()
@@ -104,7 +105,6 @@ if(BOOTSTRAP_DEBIAN_MKHERE)
 				message(FATAL_ERROR
 					"Failed to create rootfs for debian in ${DEBIAN_ROOTFS}")
 			endif()
-			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 			execute_process(
 				COMMAND "${CMAKE_COMMAND}"
 					-E env
@@ -125,7 +125,6 @@ if(BOOTSTRAP_DEBIAN_MKHERE)
 				message(FATAL_ERROR
 					"Failed to run debootstrap ${DEBOOTSTRAP_SUITE} ${DEBIAN_ROOTFS}")
 			endif()
-			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 			execute_process(
 				COMMAND "${GIT_EXECUTABLE}"
 					clone
@@ -142,7 +141,6 @@ if(BOOTSTRAP_DEBIAN_MKHERE)
 				message(FATAL_ERROR
 					"Failed to install /mkhere into debian rootfs ${DEBIAN_ROOTFS}")
 			endif()
-			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 		endif()
 	endif()
 

@@ -45,7 +45,6 @@ if(NOT DEFINED BOOTSTRAP_MKHERE_MENU)
 		"How to bootstrap the \"mkhere\" facility for \"mkroot\"")
 endif()
 #
-message(STATUS "Bootstrap menu: ${BOOTSTRAP_MKHERE_MENU_STRINGS}")
 set_property(CACHE
 	BOOTSTRAP_MKHERE_MENU
 	PROPERTY STRINGS
