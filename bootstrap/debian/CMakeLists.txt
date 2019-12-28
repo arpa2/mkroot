@@ -20,21 +20,15 @@ if(NOT GIT_FOUND)
 endif()
 
 
-# Retrieve the debootstrap tar ball, if a version was accepted
+# Make sure to have the DEBOOTSTRAP_VERSION and DEBOOTSTRAP_SUITE strings
 #
-if(DEFINED DEBOOTSTRAP_VERSION)
-	set(DEBOOTSTRAP_TARBALL "${CMAKE_CURRENT_BINARY_DIR}/debootstrap_${DEBOOTSTRAP_VERSION}.tar.gz")
-	if(NOT EXISTS "${DEBOOTSTRAP_TARBALL}")
-		file(DOWNLOAD
-			"http://deb.debian.org/debian/pool/main/d/debootstrap/debootstrap_${DEBOOTSTRAP_VERSION}.tar.gz"
-			"${DEBOOTSTRAP_TARBALL}"
-		)
-	endif()
-else()
+if(NOT DEFINED DEBOOTSTRAP_VERSION)
 	set(DEBOOTSTRAP_VERSION
 		"1.0.116"
 		CACHE STRING
 		"Debian's debootstrap script version to fetch")
+endif()
+if(NOT DEFINED DEBOOTSTRAP_SUITE)
 	set(DEBOOTSTRAP_SUITE
 		"stable"
 		CACHE STRING
@@ -42,94 +36,117 @@ else()
 endif()
 
 
-# Unpack the tar ball into a directory
+# Tell the parent CMakeLists.txt about the DEBIAN_ROOTFS to use
+set(DEBIAN_ROOTFS
+	"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs"
+	PARENT_SCOPE)
+
+
+# BIG IF -- whether to actually install a Debian
 #
-if(EXISTS "${DEBOOTSTRAP_TARBALL}")
-	set(DEBOOTSTRAP_DIR "${CMAKE_CURRENT_BINARY_DIR}/debootstrap-${DEBOOTSTRAP_VERSION}")
-	if(NOT IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
-		execute_process(
-			COMMAND "${CMAKE_COMMAND}"
-				-E tar xzf
-				"${DEBOOTSTRAP_TARBALL}"
-			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+option(BOOTSTRAP_DEBIAN_MKHERE "Bootstrap via \"mkhere\" on Debian, Ubuntu, Tanglu or Kali" OFF)
+if(BOOTSTRAP_DEBIAN_MKHERE)
+
+
+# Retrieve the debootstrap tar ball, if a version was accepted
+#
+	set(DEBOOTSTRAP_TARBALL "${CMAKE_CURRENT_BINARY_DIR}/debootstrap_${DEBOOTSTRAP_VERSION}.tar.gz")
+	if(NOT EXISTS "${DEBOOTSTRAP_TARBALL}")
+		file(DOWNLOAD
+			"http://deb.debian.org/debian/pool/main/d/debootstrap/debootstrap_${DEBOOTSTRAP_VERSION}.tar.gz"
+			"${DEBOOTSTRAP_TARBALL}"
 		)
 	endif()
-endif()
+
+
+# Unpack the tar ball into a directory
+#
+	if(EXISTS "${DEBOOTSTRAP_TARBALL}")
+		set(DEBOOTSTRAP_DIR "${CMAKE_CURRENT_BINARY_DIR}/debootstrap-${DEBOOTSTRAP_VERSION}")
+		if(NOT IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
+			execute_process(
+				COMMAND "${CMAKE_COMMAND}"
+					-E tar xzf
+					"${DEBOOTSTRAP_TARBALL}"
+				WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+			)
+		endif()
+	endif()
 
 
 # Run the debootstrap script against the rootfs
 #
-if(IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
-	#TODO# Iterate over a list of suites entered... how?
-	set(DEBIAN_ROOTFS
-		"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs")
-	set(DEBIAN_ROOTFS
-		"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs"
-		PARENT_SCOPE)
-	if(IS_DIRECTORY "${DEBIAN_ROOTFS}")
-		message(STATUS
-			"Reusing bootstrapping directory ${DEBIAN_ROOTFS}")
-	else()
-		execute_process(
-			COMMAND "${CMAKE_COMMAND}"
-				-E remove_directory
-				"${DEBIAN_ROOTFS}"
-		)
-		execute_process(
-			COMMAND "${CMAKE_COMMAND}"
-				-E make_directory
-				"${DEBIAN_ROOTFS}"
-			RESULT_VARIABLE _EXIT
-		)
-		if(NOT _EXIT EQUAL 0)
+	if(IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
+		#TODO# Iterate over a list of suites entered... how?
+		set(DEBIAN_ROOTFS
+			"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs")
+		if(IS_DIRECTORY "${DEBIAN_ROOTFS}")
+			message(STATUS
+				"Reusing bootstrapping directory ${DEBIAN_ROOTFS}")
+		else()
 			execute_process(
 				COMMAND "${CMAKE_COMMAND}"
 					-E remove_directory
 					"${DEBIAN_ROOTFS}"
 			)
-			message(FATAL_ERROR
-				"Failed to create rootfs for debian in ${DEBIAN_ROOTFS}")
-		endif()
-		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
-		execute_process(
-			COMMAND "${CMAKE_COMMAND}"
-				-E env
-				"DEBOOTSTRAP_DIR=${DEBOOTSTRAP_DIR}"
-				"${DEBOOTSTRAP_DIR}/debootstrap"
-				"--variant=buildd"
-				"--include=cmake,git,wget,cpio"
-				"${DEBOOTSTRAP_SUITE}"
-				"${DEBIAN_ROOTFS}"
-			RESULT_VARIABLE _EXIT
-		)
-		if(NOT _EXIT EQUAL 0)
 			execute_process(
 				COMMAND "${CMAKE_COMMAND}"
-					-E remove_directory
+					-E make_directory
 					"${DEBIAN_ROOTFS}"
+				RESULT_VARIABLE _EXIT
 			)
-			message(FATAL_ERROR
-				"Failed to run debootstrap ${DEBOOTSTRAP_SUITE} ${DEBIAN_ROOTFS}")
-		endif()
-		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
-		execute_process(
-			COMMAND "${GIT_EXECUTABLE}"
-				clone
-				"${MKHERE_ORIGIN}"
-				"${DEBIAN_ROOTFS}/mkhere"
-			RESULT_VARIABLE _EXIT
-		)
-		if(NOT _EXIT EQUAL 0)
+			if(NOT _EXIT EQUAL 0)
+				execute_process(
+					COMMAND "${CMAKE_COMMAND}"
+						-E remove_directory
+						"${DEBIAN_ROOTFS}"
+				)
+				message(FATAL_ERROR
+					"Failed to create rootfs for debian in ${DEBIAN_ROOTFS}")
+			endif()
+			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 			execute_process(
 				COMMAND "${CMAKE_COMMAND}"
-					-E remove_directory
+					-E env
+					"DEBOOTSTRAP_DIR=${DEBOOTSTRAP_DIR}"
+					"${DEBOOTSTRAP_DIR}/debootstrap"
+					"--variant=buildd"
+					"--include=cmake,git,wget,cpio"
+					"${DEBOOTSTRAP_SUITE}"
 					"${DEBIAN_ROOTFS}"
+				RESULT_VARIABLE _EXIT
 			)
-			message(FATAL_ERROR
-				"Failed to install /mkhere into debian rootfs ${DEBIAN_ROOTFS}")
+			if(NOT _EXIT EQUAL 0)
+				execute_process(
+					COMMAND "${CMAKE_COMMAND}"
+						-E remove_directory
+						"${DEBIAN_ROOTFS}"
+				)
+				message(FATAL_ERROR
+					"Failed to run debootstrap ${DEBOOTSTRAP_SUITE} ${DEBIAN_ROOTFS}")
+			endif()
+			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
+			execute_process(
+				COMMAND "${GIT_EXECUTABLE}"
+					clone
+					"${MKHERE_ORIGIN}"
+					"${DEBIAN_ROOTFS}/mkhere"
+				RESULT_VARIABLE _EXIT
+			)
+			if(NOT _EXIT EQUAL 0)
+				execute_process(
+					COMMAND "${CMAKE_COMMAND}"
+						-E remove_directory
+						"${DEBIAN_ROOTFS}"
+				)
+				message(FATAL_ERROR
+					"Failed to install /mkhere into debian rootfs ${DEBIAN_ROOTFS}")
+			endif()
+			message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 		endif()
-		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 	endif()
+
+
+# BIG IF ends here
+#
 endif()
-
-

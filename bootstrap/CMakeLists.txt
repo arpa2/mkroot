@@ -15,28 +15,25 @@ set(BOOTSTRAP_MKHERE_MENU_STRINGS "${BOOTSTRAP_MKHERE_MENU_DEFAULT}")
 
 # Debian bootstrapping (for a selected suite)
 #
-option(BOOTSTRAP_DEBIAN_MKHERE "Bootstrap via \"mkhere\" on Debian, Ubuntu, Tanglu or Kali" OFF)
-if(BOOTSTRAP_DEBIAN_MKHERE)
-	add_subdirectory(debian)
-	if(DEFINED DEBIAN_ROOTFS)
-		list(APPEND
-			BOOTSTRAP_MKHERE_MENU_STRINGS
-			"${DEBIAN_ROOTFS}/mkhere")
-	endif()
+add_subdirectory(debian)
+if(DEFINED DEBIAN_ROOTFS)
+	list(APPEND
+		BOOTSTRAP_MKHERE_MENU_STRINGS
+		"${DEBIAN_ROOTFS}/mkhere")
 endif()
 
 
 # Windows bootstrapping
 #
-option(BOOTSTRAP_WINDOWS_MKHERE "Bootstrap via \"mkhere\" on Windows" OFF)
-if(BOOTSTRAP_WINDOWS_MKHERE)
-	add_subdirectory(windows)
+#TODO#MOVEDOWN# option(BOOTSTRAP_WINDOWS_MKHERE "Bootstrap via \"mkhere\" on Windows" OFF)
+#TODO#MOVEDOWN# if(BOOTSTRAP_WINDOWS_MKHERE)
+	#TODO#CREATE# add_subdirectory(windows)
 	if (DEFINED WINDOWS_ROOTFS)
 		list(APPEND
 			BOOTSTRAP_MKHERE_MENU_STRINGS
 			"${WINDOWS_ROOTFS}/mkhere")
 	endif()
-endif()
+#TODO#MOVEDOWN# endif()
 
 
 # Set a bootstrapping menu that provides an alternative to "mkhere" symlinks
