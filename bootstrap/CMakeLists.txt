@@ -10,6 +10,7 @@
 
 # Collect menu options for "mkhere" linkage
 #
+set(BOOTSTRAP_MKHERE_MENU CACHE STRING "Bootstrap options to populate \"mkhere\" for this \"mkroot\" build environment")
 set(BOOTSTRAP_MKHERE_MENU_STRINGS "${BOOTSTRAP_MKHERE_MENU_DEFAULT}")
 
 

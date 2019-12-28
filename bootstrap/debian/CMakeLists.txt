@@ -39,7 +39,7 @@ endif()
 # Tell the parent CMakeLists.txt about the DEBIAN_ROOTFS to use
 #
 set(DEBIAN_ROOTFS
-	"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs"
+	"bootstrap/debian/${DEBOOTSTRAP_SUITE}/rootfs"
 	PARENT_SCOPE)
 
 

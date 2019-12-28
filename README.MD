@@ -73,7 +73,7 @@ git clone https://github.com/arpa2/mkroot
 mkdir build4debian
 cd build4debian
 cmake -D BOOTSTRAP_DEBIAN_MKHERE=ON \
-      -D BUILDROOT_MKHERE="$(pwd)/bootstrap/debian/stable/rootfs/mkhere" \
+      -D BOOTSTRAP_MKHERE_MENU="bootstrap/debian/stable/rootfs/mkhere" \
       ../mkroot
 make
 ls -d */*/rootfs
