@@ -47,5 +47,5 @@ rootfs_downloads(
 )
 
 rootfs_runkind(OCI_bundle
-	# config.json
+	config.json
 )

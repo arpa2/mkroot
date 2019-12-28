@@ -24,7 +24,7 @@ rootfs_ospackages(
 # Source packages built in the build OS and then exported
 #
 rootfs_packages(
-	twin
+	twin	VERSION=v0.8.1
 	mbusd
 	hexio
 )

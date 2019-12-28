@@ -15,6 +15,7 @@ include(ExternalData)
 
 
 set(DEFAULT_PACKAGE_MODIFIER "(no override)")
+set(BOOTSTRAP_MKHERE_MENU_DEFAULT "(mkhere symbolic link)")
 
 set(PACKAGES_GENERATED "" CACHE INTERNAL "Packages generated so far")
 
@@ -29,7 +30,15 @@ add_subdirectory(bootstrap)
 # Require a `mkhere` link.  Scan for mkhere/lib/stdlib to exist.
 #
 if(NOT DEFINED BUILDROOT_MKHERE)
-	if (${CMAKE_VERSION} VERSION_LESS "3.14.0")
+	if("${BOOTSTRAP_MKHERE_MENU}" STREQUAL "")
+		set(BOOTSTRAP_MKHERE_MENU "${BOOTSTRAP_MKHERE_MENU_DEFAULT}")
+	endif()
+	if(NOT "${BOOTSTRAP_MKHERE_MENU}" STREQUAL "${BOOTSTRAP_MKHERE_MENU_DEFAULT}")
+		message(STATUS "Setting BUILDROOT_MKHERE to bootstrap menu item \"${BOOTSTRAP_MKHERE_MENU}\"")
+		set(BUILDROOT_MKHERE "${BOOTSTRAP_MKHERE_MENU}"
+			CACHE STRING
+			"Bootstrapping menu sets \"mkhere\" context for these \"mkroot\" builds")
+	elseif (${CMAKE_VERSION} VERSION_LESS "3.14.0")
 		# Older CMAKE have no builtin for reading symbolic links
 		find_file(
 			BUILDROOT_MKHERE_STDLIB
@@ -38,7 +47,7 @@ if(NOT DEFINED BUILDROOT_MKHERE)
 			NO_DEFAULT_PATH)
 		if("${BUILDROOT_MKHERE_STDLIB}" STREQUAL "BUILDROOT_MKHERE_STDLIB-NOTFOUND")
 			message(FATAL_ERROR
-				"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}")
+				"Please create a \"mkhere\" symlink to a buildroot/mkhere tree or define \$\{BUILDROOT_MKHERE\}; you may define BOOTSTRAP_DEBIAN_MKHERE=ON if you want to select a bootstrapping environment from a menu.")
 		endif()
 		message(STATUS
 			"Found stdlib script file in ${BUILDROOT_MKHERE_STDLIB}")

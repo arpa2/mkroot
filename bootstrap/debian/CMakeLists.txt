@@ -63,10 +63,13 @@ if(IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
 	#TODO# Iterate over a list of suites entered... how?
 	set(DEBIAN_ROOTFS
 		"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs")
-	# if(IS_DIRECTORY "${DEBIAN_ROOTFS}")
-		# message(STATUS
-			# "Reusing bootstrapping directory ${DEBIAN_ROOTFS}")
-	# else()
+	set(DEBIAN_ROOTFS
+		"${CMAKE_CURRENT_BINARY_DIR}/${DEBOOTSTRAP_SUITE}/rootfs"
+		PARENT_SCOPE)
+	if(IS_DIRECTORY "${DEBIAN_ROOTFS}")
+		message(STATUS
+			"Reusing bootstrapping directory ${DEBIAN_ROOTFS}")
+	else()
 		execute_process(
 			COMMAND "${CMAKE_COMMAND}"
 				-E remove_directory
@@ -76,22 +79,57 @@ if(IS_DIRECTORY "${DEBOOTSTRAP_DIR}")
 			COMMAND "${CMAKE_COMMAND}"
 				-E make_directory
 				"${DEBIAN_ROOTFS}"
+			RESULT_VARIABLE _EXIT
 		)
+		if(NOT _EXIT EQUAL 0)
+			execute_process(
+				COMMAND "${CMAKE_COMMAND}"
+					-E remove_directory
+					"${DEBIAN_ROOTFS}"
+			)
+			message(FATAL_ERROR
+				"Failed to create rootfs for debian in ${DEBIAN_ROOTFS}")
+		endif()
+		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 		execute_process(
-			COMMAND "${DEBOOTSTRAP_DIR}/debootstrap"
+			COMMAND "${CMAKE_COMMAND}"
+				-E env
+				"DEBOOTSTRAP_DIR=${DEBOOTSTRAP_DIR}"
+				"${DEBOOTSTRAP_DIR}/debootstrap"
 				"--variant=buildd"
 				"--include=cmake,git,wget,cpio"
 				"${DEBOOTSTRAP_SUITE}"
 				"${DEBIAN_ROOTFS}"
+			RESULT_VARIABLE _EXIT
 		)
+		if(NOT _EXIT EQUAL 0)
+			execute_process(
+				COMMAND "${CMAKE_COMMAND}"
+					-E remove_directory
+					"${DEBIAN_ROOTFS}"
+			)
+			message(FATAL_ERROR
+				"Failed to run debootstrap ${DEBOOTSTRAP_SUITE} ${DEBIAN_ROOTFS}")
+		endif()
+		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
 		execute_process(
 			COMMAND "${GIT_EXECUTABLE}"
 				clone
 				"${MKHERE_ORIGIN}"
 				"${DEBIAN_ROOTFS}/mkhere"
+			RESULT_VARIABLE _EXIT
 		)
-		#TODO# Git Clone "mkhere" into "${DEBIAN_ROOTFS}/mkhere"
-	# endif()
+		if(NOT _EXIT EQUAL 0)
+			execute_process(
+				COMMAND "${CMAKE_COMMAND}"
+					-E remove_directory
+					"${DEBIAN_ROOTFS}"
+			)
+			message(FATAL_ERROR
+				"Failed to install /mkhere into debian rootfs ${DEBIAN_ROOTFS}")
+		endif()
+		message(STATUS "Running debootstrap --variant=buildd --include=cmake,git,wget,cpio \"${DEBOOTSTRAP_SUITE}\" \"${DEBIAN_ROOTFS}\"")
+	endif()
 endif()
 
 
