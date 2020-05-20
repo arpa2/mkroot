@@ -39,7 +39,6 @@ rootfs_directories(
 	/tmp
 	/proc /sys
 	/var/log
-	/run/knot /var/lib/knot
 )
 
 # Files from the build OS to be copied into the rootfs
