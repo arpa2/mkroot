@@ -6,7 +6,7 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-add_rootfs(kiphaan)
+add_rootfs(kip)
 
 rootfs_ospackages(
 	busybox # bash

@@ -49,4 +49,4 @@ declare_bridge (iwo0adm "Administrative access")
 # Building instructions for components of the InternetWide Architecture
 #
 add_subdirectory(arpa2dns)
-add_subdirectory(kiphaan)
+add_subdirectory(kip)
