@@ -15,8 +15,11 @@
 
 case "$1" in
 
+create)
+	ip netns add @KIP_NETNS@
+	;;
+
 up)
-	#TODO# ip netns add @KIP_NETNS@ &&
 	ip link add @KIP_DMZ@0 type veth peer name @KIP_DMZ@ netns @KIP_NETNS@ &&
 	ip link add @KIP_CTL@0 type veth peer name @KIP_CTL@ netns @KIP_NETNS@ &&
 	ip netns exec @KIP_NETNS@ ip addr add 172.17.0.6/12 dev @KIP_DMZ@ &&  #TODO#

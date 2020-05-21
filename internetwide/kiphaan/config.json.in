@@ -177,7 +177,21 @@
 		]
 	},
 	"hooks": {
+		"createContainer": [
+			{
+				"path": "@CMAKE_CURRENT_BINARY_DIR@/net4kip.sh",
+				"args": [ "net4kip.sh", "tralala" ],
+				"timeout": 3
+			}
+		],
 		"prestart": [
+			{
+				"path": "@CMAKE_CURRENT_BINARY_DIR@/net4kip.sh",
+				"args": [ "net4kip.sh", "up" ],
+				"timeout": 3
+			}
+		],
+		"startContainer": [
 			{
 				"path": "@CMAKE_CURRENT_BINARY_DIR@/net4kip.sh",
 				"args": [ "net4kip.sh", "up" ],
