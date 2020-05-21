@@ -16,19 +16,25 @@
 case "$1" in
 
 up)
-	#TODO# ip netns add kip0ns &&
-	ip link add kip0if0 type veth peer name kip0eth0 &&
-	ip link set kip0eth0 netns kip0ns &&
-	ip netns exec kip0ns ip addr add 172.17.0.6/12 dev kip0eth0 &&
-	ip addr add 172.17.0.1/12 dev kip0if0 &&
-	ip netns exec kip0ns ip link set dev kip0eth0 up &&
-	ip netns exec kip0ns ip link set dev lo up &&
-	ip link set kip0if0 up
+	#TODO# ip netns add @KIP_NETNS@ &&
+	ip link add @KIP_DMZ@0 type veth peer name @KIP_DMZ@ netns @KIP_NETNS@ &&
+	ip link add @KIP_CTL@0 type veth peer name @KIP_CTL@ netns @KIP_NETNS@ &&
+	ip netns exec @KIP_NETNS@ ip addr add 172.17.0.6/12 dev @KIP_DMZ@ &&  #TODO#
+	ip link set dev @KIP_DMZ@0 up &&
+	ip link set dev @KIP_CTL@0 up &&
+	brctl addif @KIP_BRIDGE@  @KIP_DMZ@0 &&
+	brctl addif @KIP_CONTROL@ @KIP_CTL@0 &&
+	ip netns exec @KIP_NETNS@ ip link set dev @KIP_DMZ@ up &&
+	ip netns exec @KIP_NETNS@ ip link set dev @KIP_CTL@ up &&
+	ip netns exec @KIP_NETNS@ ip link set dev lo up
 	;;
 
 down)
-	ip link del kip0if0
-	#TODO# ip netns del kip0ns
+	brctl delif @KIP_BRIDGE@  @KIP_DMZ@0
+	brctl delif @KIP_CONTROL@ @KIP_CTL@0
+	ip link del @KIP_DMZ@0
+	ip link del @KIP_CTL@0
+	#TODO# ip netns del @KIP_NETNS@
 	;;
 
 *)

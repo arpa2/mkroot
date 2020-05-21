@@ -58,6 +58,13 @@ rootfs_downloads(
 	# "http://internetwide.org/tag/identity.html"
 )
 
+use_bridge (KIP_BRIDGE iwo0dmz)
+use_bridge (KIP_CONTROL iwo0ctl)
+
+set (KIP_NETNS kip0ns)
+set (KIP_DMZ kip0dmz)
+set (KIP_CTL kip0ctl)
+
 rootfs_runkind(OCI_bundle
 	config.json
 	net4kip.sh
