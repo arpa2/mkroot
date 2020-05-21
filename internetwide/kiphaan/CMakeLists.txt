@@ -6,7 +6,7 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-add_rootfs(kip_haan)
+add_rootfs(kiphaan)
 
 rootfs_ospackages(
 	busybox # bash
@@ -43,6 +43,8 @@ rootfs_files(
 	/etc/ld.so.conf
 	/etc/ld.so.conf.d/*
 	README.MD
+	etc/inittab
+	#WONTWORK# etc/profile
 )
 
 rootfs_fixups(
@@ -58,6 +60,7 @@ rootfs_downloads(
 
 rootfs_runkind(OCI_bundle
 	config.json
+	net4kip.sh
 )
 
 # rootfs_kernel(

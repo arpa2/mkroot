@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# network4kiphaan.sh -- hook script for up/down operations
+#
+# For the proper hooks, see prestart and poststop in
+# https://github.com/opencontainers/runtime-spec/blob/master/config.md
+#
+# A neat document explaining network namespaces is on
+# https://blog.scottlowe.org/2013/09/04/introducing-linux-network-namespaces/
+#
+# From: Rick van Rein <rick@openfortress.nl>
+
+
+#TODO# brctl addif/delif
+
+case "$1" in
+
+up)
+	#TODO# ip netns add kip0ns &&
+	ip link add kip0if0 type veth peer name kip0eth0 &&
+	ip link set kip0eth0 netns kip0ns &&
+	ip netns exec kip0ns ip addr add 172.17.0.6/12 dev kip0eth0 &&
+	ip addr add 172.17.0.1/12 dev kip0if0 &&
+	ip netns exec kip0ns ip link set dev kip0eth0 up &&
+	ip netns exec kip0ns ip link set dev lo up &&
+	ip link set kip0if0 up
+	;;
+
+down)
+	ip link del kip0if0
+	#TODO# ip netns del kip0ns
+	;;
+
+*)
+	echo >&2 "Usage: $0 up|down"
+	exit 1
+	;;
+
+esac
