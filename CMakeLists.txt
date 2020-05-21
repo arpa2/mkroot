@@ -74,7 +74,7 @@ macro(rootfs__addedpackages)
 		add_custom_command(
 			TARGET ${_PKGNAME}-have_build
 			COMMAND "${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
-				"have" "osdepend" "depend" "build")
+				"osdepend" "depend" "have" "build" "test")
 	endforeach()
 endmacro(rootfs__addedpackages)
 #
@@ -90,7 +90,7 @@ macro(add_rootfs_package _PKGNAME)
 			VARIANT_${_PKGNAME}=${VARIANT}
 			FLAVOUR_${_PKGNAME}=${FLAVOUR}
 			"${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
-			"osdepend" "depend" "have" "build"
+			"osdepend" "depend" "have" "build" "test"
 		COMMAND ${CMAKE_COMMAND} -E env
 			VERSION_${_PKGNAME}=${VERSION}
 			VARIANT_${_PKGNAME}=${VARIANT}
