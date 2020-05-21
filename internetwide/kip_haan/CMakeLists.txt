@@ -1,28 +1,28 @@
-# InternetWide Architecture Component: ARPA2DNS
+# InternetWide Architecture Component: KIP and HAAN Service.
 #
-# The constructs a root file system for an arpa2dns service,
-# based on mkhere building and packaging.
+# The constructs a root file system for a KIP Service daemon,
+# along with HAAN Service, based on mkhere building and packaging.
 #
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-add_rootfs(arpa2dns)
+add_rootfs(kip_haan)
 
 rootfs_ospackages(
 	busybox # bash
-	python3-minimal
-	libpython3.7-minimal
-	libpython3-stdlib
-	python3.7-minimal
-	libpython3.7-stdlib
-	python3-six
-	# knot knot-dnsutils
+	libkrb5-3 libk5crypto3
+	libsasl2-2
+	libunbound8
+	freediameter freediameter-extensions freediameterd
+	libc-bin
 )
 
 rootfs_packages(
-	knot		VERSION=2.9.4
-	arpa2shell	VERSION=1.2.3
-	twin		VERSION=v0.8.1
+	arpa2cm
+	quickder
+	kip
+	# arpa2shell	VERSION=1.2.3
+	# twin		VERSION=v0.8.1
 )
 
 rootfs_directories(
@@ -33,7 +33,6 @@ rootfs_directories(
 	/tmp
 	/proc /sys
 	/var/log
-	/run/knot /var/lib/knot
 )
 
 rootfs_files(
@@ -48,7 +47,8 @@ rootfs_files(
 
 rootfs_fixups(
 	busybox.ash
-	stripdocs.ash
+	stripdev.ash
+	ldconfig.ash
 )
 
 rootfs_downloads(

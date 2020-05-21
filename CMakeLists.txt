@@ -83,6 +83,8 @@ macro(add_rootfs_package _PKGNAME)
 	add_custom_command(
 		TARGET ${CURRENT_ROOTFS}-rootfs
 		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E echo
+			"Installing package ${_PKGNAME} into rootfs ${CURRENT_ROOTFS}"
 		COMMAND ${CMAKE_COMMAND} -E env
 			VERSION_${_PKGNAME}=${VERSION}
 			VARIANT_${_PKGNAME}=${VARIANT}
@@ -94,7 +96,7 @@ macro(add_rootfs_package _PKGNAME)
 			VARIANT_${_PKGNAME}=${VARIANT}
 			FLAVOUR_${_PKGNAME}=${FLAVOUR}
 			"${BUILDROOT_MKHERE}/${_PKGNAME}.sh"
-			"cpioprefix" "oslibcpio" "install"
+			"cpio" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endmacro(add_rootfs_package)
 
@@ -219,11 +221,11 @@ function(rootfs_ospackages)
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
-				"osdepend" "depend" "have" "build"
+				"osdepend"
 		COMMAND "${CMAKE_COMMAND}" "-E"
 			"env" "FLAVOUR_ospackages=${OSPKGS}"
 			"${BUILDROOT_MKHERE}/ospackages.sh"
-				"cpioprefix" "oslibcpio" "install"
+				"cpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endfunction(rootfs_ospackages)
 
@@ -281,7 +283,7 @@ function(rootfs_files)
 			COMMAND "${CMAKE_COMMAND}" "-E"
 				"env" "FLAVOUR_osfiles=\"${OSFILES}\""
 				"${BUILDROOT_MKHERE}/osfiles.sh"
-					"cpioprefix" "oslibcpio" "install"
+					"cpio" "oslibcpio" "install"
 			WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 	endif()
 	foreach(LOCALFILE IN LISTS LOCALFILES)
@@ -452,7 +454,7 @@ function(rootfs_oscommands)
 		COMMAND ${CMAKE_COMMAND} -E env
 			FLAVOUR_osterminfo=${FLAVOUR}
 			"${BUILDROOT_MKHERE}/oscommands.sh"
-			"cpioprefix" "oslibcpio" "install"
+			"cpio" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endfunction(rootfs_oscommands)
 
@@ -472,7 +474,7 @@ function(rootfs_oslibraries)
 		COMMAND ${CMAKE_COMMAND} -E env
 			FLAVOUR_osterminfo=${FLAVOUR}
 			"${BUILDROOT_MKHERE}/oslibraries.sh"
-			"cpioprefix" "oslibcpio" "install"
+			"cpio" "oslibcpio" "install"
 		WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/rootfs")
 endfunction(rootfs_oslibraries)
 
