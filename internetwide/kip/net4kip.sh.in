@@ -11,11 +11,11 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
-#TODO# brctl addif/delif
-
 case "$1" in
 
 create)
+	#TODO# Throuh documented, the "createContainer" hook does not call here
+	# You can call this manually before bringing up the container
 	ip netns add @KIP_NETNS@
 	;;
 
@@ -25,23 +25,27 @@ up)
 	ip netns exec @KIP_NETNS@ ip addr add 172.17.0.6/12 dev dmz0 &&  #TODO#
 	ip link set dev @KIP_DMZ@ up &&
 	ip link set dev @KIP_CTL@ up &&
-	brctl addif @KIP_BRIDGE@  @KIP_DMZ@ &&
-	brctl addif @KIP_CONTROL@ @KIP_CTL@ &&
+	brctl addif @DMZ_BRIDGE@ @KIP_DMZ@ &&
+	brctl addif @CTL_BRIDGE@ @KIP_CTL@ &&
 	ip netns exec @KIP_NETNS@ ip link set dev dmz0 up &&
 	ip netns exec @KIP_NETNS@ ip link set dev ctl0 up &&
 	ip netns exec @KIP_NETNS@ ip link set dev lo   up
 	;;
 
 down)
-	brctl delif @KIP_BRIDGE@  @KIP_DMZ@
-	brctl delif @KIP_CONTROL@ @KIP_CTL@
+	brctl delif @DMZ_BRIDGE@ @KIP_DMZ@
+	brctl delif @CTL_BRIDGE@ @KIP_CTL@
 	ip link del @KIP_DMZ@
 	ip link del @KIP_CTL@
-	#TODO# ip netns del @KIP_NETNS@
+	;;
+
+destroy)
+	# You can call this manually after bringing down the container
+	ip netns del @KIP_NETNS@
 	;;
 
 *)
-	echo >&2 "Usage: $0 up|down"
+	echo >&2 "Usage: $0 create|up|down|destroy"
 	exit 1
 	;;
 

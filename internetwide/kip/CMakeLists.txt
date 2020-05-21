@@ -58,8 +58,8 @@ rootfs_downloads(
 	# "http://internetwide.org/tag/identity.html"
 )
 
-use_bridge (KIP_BRIDGE iwo0dmz)
-use_bridge (KIP_CONTROL iwo0ctl)
+use_bridge (DMZ_BRIDGE iwo0dmz)
+use_bridge (CTL_BRIDGE iwo0ctl)
 
 set (KIP_NETNS kip0ns)
 set (KIP_DMZ kip0dmz)
