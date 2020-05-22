@@ -1,0 +1,16 @@
+# Inittab for BusyBox
+#
+# See https://git.busybox.net/busybox/tree/examples/inittab
+#
+# This runs a KIP Service daemon and respawns it on crashes.
+#
+::sysinit:/etc/rcS
+::askfirst:/bin/sh
+::respawn:/usr/sbin/nginx -g 'daemon off;'
+::ctrlaltdel:/sbin/reboot
+::shutdown:/sbin/swapoff -a
+::shutdown:/bin/umount -a -r
+::restart:/sbin/init
+tty2::askfirst:/bin/sh
+tty3::askfirst:/bin/sh
+tty4::askfirst:/bin/sh

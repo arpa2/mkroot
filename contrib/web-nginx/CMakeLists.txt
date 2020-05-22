@@ -22,17 +22,21 @@ rootfs_directories(
 	/lib /usr/lib
 	/tmp
 	/proc /sys
+	/run
+	/home
 	/var/log
-	/var/www /home
+	/var/www/html
+	/var/log/nginx
 )
 
 rootfs_files(
-	# /etc/passwd
-	# /etc/shadow
-	# /etc/group
+	/etc/passwd
+	/etc/shadow
+	/etc/group
 	/etc/nsswitch.conf
 	/etc/ld.so.conf
 	/etc/ld.so.conf.d/*
+	etc/inittab
         README.MD
 )
 
