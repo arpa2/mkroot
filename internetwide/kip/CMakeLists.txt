@@ -10,7 +10,7 @@ add_rootfs(kip)
 
 rootfs_ospackages(
 	busybox # bash
-	libkrb5-3 libk5crypto3
+	krb5-user libkrb5-3 libk5crypto3
 	libsasl2-2
 	libunbound8
 	freediameter freediameter-extensions freediameterd
@@ -44,7 +44,7 @@ rootfs_files(
 	/etc/ld.so.conf.d/*
 	README.MD
 	etc/inittab
-	#WONTWORK# etc/profile
+	etc/rcS
 )
 
 rootfs_fixups(
@@ -74,5 +74,11 @@ rootfs_runkind(OCI_bundle
 	# ftdi_sio
 	# loop
 # )
+
+execute_process (COMMAND ${CMAKE_COMMAND}
+		-E make_directory
+			"${CMAKE_CURRENT_BINARY_DIR}/vardir"
+			"${CMAKE_CURRENT_BINARY_DIR}/vardir/kip-vhost"
+)
 
 

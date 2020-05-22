@@ -1,0 +1,40 @@
+#!/bin/ash
+#
+# Setup KIP Service daemon,
+#  (1) In lieu of $KIP_KEYTAB create one with ktutil
+#  (2) In lieu of $KIPVHS_HAVE realms, create them with kipvhs
+#
+# From: Rick van Rein <rick@openfortress.nl>
+
+
+KIP_KEYTAB="${KIP_KEYTAB:-${KRB5_KTNAME:-/etc/krb5.keytab}}"
+KIP_VARDIR="${KIP_VARDIR:-/var/lib/kip}"
+
+if [ ! -r "$KIP_KEYTAB" ]
+then
+	ktutil >/dev/null 2>/dev/null <<-KTDONE
+	add_entry -key -p kip/MASTER@. -k $(date +%Y%m%d) -e aes256-cts-hmac-sha384-192
+	$(hexdump /dev/urandom | head | sha256sum | sed 's/ *-$//')
+	write_kt "$KIP_KEYTAB"
+	KTDONE
+	RETVAL=$?
+	if [ $RETVAL -ne 0 ]
+	then
+		exit $RETVAL
+	fi
+	echo " * Created fresh keytab in $KIP_KEYTAB"
+fi
+
+mkdir -p "${KIP_VARDIR}/kip-vhost"
+
+for VHS in $KIPVHS_HAVE
+do
+	if [ ! -r "${KIP_VARDIR}/kip-vhost/$VHS" ]
+	then
+		PATH=$PATH:/usr/local/bin:/usr/local/sbin \
+		KIP_REALM="$VHS" \
+			kipvhs add kip "$VHS" || exit 1
+		echo " * Created KIP virtual host key $VHS"
+	fi
+done
+

@@ -11,7 +11,10 @@
 		],
 		"env": [
 			"PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin",
-			"TERM=ansi"
+			"TERM=ansi",
+			"KIP_VARDIR=/var/lib/kip",
+			"KIP_KEYTAB=/var/lib/kip/master.keytab",
+			"KIPVHS_HAVE=demo.unicorn.arpa2.org"
 		],
 		"cwd": "/",
 		"capabilities": {
@@ -54,7 +57,7 @@
 		"path": "rootfs",
 		"readonly": true
 	},
-	"hostname": "kippenhok",
+	"hostname": "kip0",
 	"mounts": [
 		{
 			"destination": "/proc",
@@ -128,6 +131,18 @@
 				"nodev",
 				"relatime",
 				"ro"
+			]
+		},
+		{
+			"destination": "/var/lib/kip",
+			"source": "@CMAKE_CURRENT_BINARY_DIR@/vardir",
+			"options": [
+				"bind",
+				"nosuid",
+				"noexec",
+				"nodev",
+				"relatime",
+				"rw"
 			]
 		}
 	],
