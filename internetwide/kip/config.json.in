@@ -14,7 +14,7 @@
 			"TERM=ansi",
 			"KIP_VARDIR=/var/lib/kip",
 			"KIP_KEYTAB=/var/lib/kip/master.keytab",
-			"KIPVHS_HAVE=demo.unicorn.arpa2.org"
+			"KIPVHS_HAVE=@KIP_VIRTUAL_HOSTS@"
 		],
 		"cwd": "/",
 		"capabilities": {

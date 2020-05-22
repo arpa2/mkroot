@@ -14,7 +14,7 @@ file(GLOB SUBDIRS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE
 foreach(SUBDIR ${SUBDIRS})
 	if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${SUBDIR}/CMakeLists.txt")
 		option("LOCAL_${SUBDIR}" "local/${SUBDIR} extension" ON)
-		if(CONTRIB_MINICOM_TOOL)
+		if(LOCAL_${SUBDIR})
 			add_subdirectory ("${SUBDIR}")
 		endif()
 	endif()

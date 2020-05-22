@@ -65,6 +65,10 @@ set (KIP_NETNS kip0ns)
 set (KIP_DMZ kip0dmz)
 set (KIP_CTL kip0ctl)
 
+set (KIP_VIRTUAL_HOSTS ""
+	CACHE STRING
+	"Space-separated list of virtual hosts with KIP Service")
+
 rootfs_runkind(OCI_bundle
 	config.json
 	net4kip.sh
