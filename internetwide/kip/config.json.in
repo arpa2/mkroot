@@ -54,7 +54,7 @@
 		"path": "rootfs",
 		"readonly": true
 	},
-	"hostname": "kiphaan",
+	"hostname": "kippenhok",
 	"mounts": [
 		{
 			"destination": "/proc",
@@ -146,7 +146,7 @@
 			},
 			{
 				"type": "network",
-				"path": "/var/run/netns/kip0ns"
+				"path": "/var/run/netns/@KIP_NETNS@"
 			},
 			{
 				"type": "ipc"
