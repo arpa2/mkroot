@@ -9,6 +9,8 @@
 # From: Rick van Rein <rick@openfortress.nl>
 
 
+message(FATAL_ERROR "This repository has moved to GitLab\n\nGet \"mkroot\" from\n\thttps://gitlab.com/arpa2/mkroot/\n")
+
 cmake_minimum_required(VERSION 3.13)
 
 project(mkroot LANGUAGES)
